@@ -40,7 +40,7 @@ class UserManager {
             {
                 id: 1,
                 email: 'johnsonestiph13@gmail.com',
-                password: this.hashPassword('Jon@2127'),
+                password: this.hashPassword(''),
                 name: 'Estiph Johnson',
                 nameAm: 'እስቲፍ ጆንሰን',
                 role: 'admin',
@@ -845,79 +845,247 @@ function setupMobileMenu() {
     });
 }
 
-// ==================== VOICE RECOGNITION ====================
+// ==================== VOICE RECOGNITION WITH WAKE WORDS ====================
 
-function setupVoiceRecognition() {
-    if (!('webkitSpeechRecognition' in window)) return;
+// Voice state
+let voiceState = {
+    isListening: false,
+    wakeWordDetected: false,
+    recognition: null,
+    isSpeaking: false,
+    wakeWordTimer: null,
+    lastTranscript: ''
+};
+
+// Wake words for different languages
+const WAKE_WORDS = {
+    en: ['hey estiph', 'hey estif', 'estiph', 'ok estiph', 'hello estiph', 'wake up estiph'],
+    am: ['ሰላም እስቲፍ', 'እስቲፍ', 'ሰላም', 'አልቃ', 'ሄይ እስቲፍ']
+};
+
+// Voice responses
+const VOICE_RESPONSES = {
+    en: {
+        wake: ['Yes?', 'I\'m listening', 'How can I help?', 'Yes, sir?', 'Go ahead', 'At your service'],
+        confirm: ['Done!', 'Command executed', 'All set!', 'Okay!', 'Completed!'],
+        error: ['Sorry, I didn\'t understand', 'Could you repeat that?', 'Command not recognized'],
+        greeting: ['Hello! How can I help you?', 'Hi there! Ready to assist'],
+        help: ['You can say: Light on, Light off, Fan on, All on, All off, What\'s the temperature?']
+    },
+    am: {
+        wake: ['አዎ?', 'እያዳመጥኩ ነው', 'ምን እረዳሃለሁ?', 'አዎ አለቃ?', 'ንገሩኝ', 'ትእዛዝዎን ይስጡ'],
+        confirm: ['ተሰራ!', 'ትእዛዝ ተፈጸመ', 'ተዘጋጀ!', 'እሺ!', 'ተከናውኗል!'],
+        error: ['ይቅርታ አልገባኝም', 'እባክህ ድገምልኝ', 'ትእዛዙ አልታወቀም'],
+        greeting: ['ሰላም! እንዴት ልረዳህ?', 'ሰላም! ዝግጁ ነኝ'],
+        help: ['ማለት ትችላለህ: መብራት አብራ, መብራት አጥፋ, ማራገቢያ አብራ, ሁሉንም አብራ, ሙቀቱ ስንት ነው']
+    }
+};
+
+// Initialize voice recognition
+function initVoiceRecognition() {
+    // Check browser support
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        console.log('Voice recognition not supported');
+        showToast('Voice recognition not supported. Please use Chrome or Edge.', 'error');
+        return false;
+    }
     
-    AppState.recognition = new webkitSpeechRecognition();
-    AppState.recognition.continuous = true;
-    AppState.recognition.interimResults = true;
-    AppState.recognition.lang = AppState.language === 'en' ? 'en-US' : 'am-ET';
+    // Create recognition instance
+    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+    voiceState.recognition = new SpeechRecognition();
+    voiceState.recognition.continuous = true;
+    voiceState.recognition.interimResults = true;
+    voiceState.recognition.maxAlternatives = 1;
     
-    AppState.recognition.onstart = () => {
-        AppState.isListening = true;
+    // Set language based on current app language
+    updateVoiceLanguage();
+    
+    // Set up event handlers
+    voiceState.recognition.onstart = () => {
+        console.log('🎤 Voice recognition started - listening for wake word');
+        voiceState.isListening = true;
         updateVoiceUI(true);
-        showToast('Listening for wake word...', 'info');
+        
+        const t = Translations[AppState.language];
+        showToast(t.listening || 'Listening for wake word...', 'info');
     };
     
-    AppState.recognition.onresult = (event) => {
+    voiceState.recognition.onend = () => {
+        console.log('🎤 Voice recognition ended');
+        // Auto-restart if we should still be listening
+        if (voiceState.isListening) {
+            try {
+                voiceState.recognition.start();
+            } catch (e) {
+                console.log('Could not restart recognition:', e);
+            }
+        } else {
+            updateVoiceUI(false);
+        }
+    };
+    
+    voiceState.recognition.onerror = (event) => {
+        console.error('Voice recognition error:', event.error);
+        
+        if (event.error === 'not-allowed') {
+            showToast('Microphone access denied. Please allow microphone access.', 'error');
+            stopVoiceRecognition();
+        } else if (event.error === 'network') {
+            showToast('Network error. Check your internet connection.', 'error');
+        } else if (event.error === 'no-speech') {
+            // Silent error - just continue
+        } else {
+            showToast('Voice error: ' + event.error, 'error');
+        }
+    };
+    
+    voiceState.recognition.onresult = (event) => {
         const transcript = Array.from(event.results)
-            .map(result => result[0].transcript.toLowerCase())
+            .map(result => result[0].transcript.toLowerCase().trim())
             .join(' ');
-        processVoiceInput(transcript);
+        
+        if (transcript && transcript !== voiceState.lastTranscript) {
+            voiceState.lastTranscript = transcript;
+            console.log('🎤 Heard:', transcript);
+            processVoiceInput(transcript);
+        }
     };
     
-    AppState.recognition.onerror = () => stopVoiceRecognition();
-    AppState.recognition.onend = () => {
-        if (AppState.isListening) AppState.recognition.start();
-    };
+    return true;
+}
+
+function updateVoiceLanguage() {
+    if (voiceState.recognition) {
+        voiceState.recognition.lang = AppState.language === 'en' ? 'en-US' : 'am-ET';
+        console.log('Voice language set to:', voiceState.recognition.lang);
+    }
+}
+
+function startVoiceRecognition() {
+    if (!voiceState.recognition) {
+        const initialized = initVoiceRecognition();
+        if (!initialized) return;
+    }
+    
+    try {
+        updateVoiceLanguage();
+        voiceState.recognition.start();
+        voiceState.isListening = true;
+        updateVoiceUI(true);
+        console.log('🎤 Voice started - listening for wake word');
+        
+        // Show indicator in voice display
+        const voiceDisplay = document.getElementById('voiceCommandText');
+        if (voiceDisplay) {
+            const t = Translations[AppState.language];
+            voiceDisplay.textContent = t.listening || '🎤 Listening for "Hey Estiph" or "ሰላም እስቲፍ"...';
+        }
+    } catch (e) {
+        console.error('Failed to start voice:', e);
+        showToast('Could not start voice recognition', 'error');
+    }
+}
+
+function stopVoiceRecognition() {
+    if (voiceState.recognition) {
+        try {
+            voiceState.recognition.stop();
+        } catch (e) {
+            console.log('Error stopping:', e);
+        }
+    }
+    voiceState.isListening = false;
+    voiceState.wakeWordDetected = false;
+    if (voiceState.wakeWordTimer) {
+        clearTimeout(voiceState.wakeWordTimer);
+    }
+    updateVoiceUI(false);
+    console.log('🎤 Voice stopped');
+    
+    const voiceDisplay = document.getElementById('voiceCommandText');
+    if (voiceDisplay) {
+        const t = Translations[AppState.language];
+        voiceDisplay.textContent = t.wakeWord || 'Say "Hey Estiph" or "ሰላም እስቲፍ"';
+    }
 }
 
 function toggleVoiceRecognition() {
-    if (AppState.isListening) {
+    console.log('Toggle voice, current state:', voiceState.isListening);
+    
+    if (voiceState.isListening) {
         stopVoiceRecognition();
+        showToast('Voice stopped', 'info');
     } else {
         startVoiceRecognition();
     }
 }
 
-function startVoiceRecognition() {
-    if (AppState.recognition) {
-        AppState.recognition.start();
-        AppState.isListening = true;
-        updateVoiceUI(true);
-    }
-}
-
-function stopVoiceRecognition() {
-    if (AppState.recognition) {
-        AppState.recognition.stop();
-        AppState.isListening = false;
-        AppState.wakeWordDetected = false;
-        updateVoiceUI(false);
+function updateVoiceUI(isListening) {
+    const voiceBtn = document.getElementById('voiceBtn');
+    
+    if (voiceBtn) {
+        if (isListening) {
+            voiceBtn.classList.add('listening');
+            voiceBtn.innerHTML = '<i class="fas fa-microphone-alt"></i><span class="pulse-ring"></span>';
+            voiceBtn.style.background = 'var(--danger)';
+            voiceBtn.style.color = 'white';
+            voiceBtn.title = 'Listening for wake word...';
+        } else {
+            voiceBtn.classList.remove('listening');
+            voiceBtn.innerHTML = '<i class="fas fa-microphone-alt"></i>';
+            voiceBtn.style.background = '';
+            voiceBtn.style.color = '';
+            voiceBtn.title = 'Start voice control';
+        }
     }
 }
 
 function processVoiceInput(transcript) {
-    const wakeWords = {
-        en: ['hey estiph', 'hey estif', 'estiph', 'ok estiph'],
-        am: ['ሰላም እስቲፍ', 'እስቲፍ', 'ሰላም']
-    };
+    const currentLang = AppState.language;
+    const wakeWordsList = WAKE_WORDS[currentLang];
     
-    if (!AppState.wakeWordDetected) {
-        const currentWakeWords = wakeWords[AppState.language];
-        for (const wake of currentWakeWords) {
+    // Check for wake word
+    if (!voiceState.wakeWordDetected) {
+        for (const wake of wakeWordsList) {
             if (transcript.includes(wake)) {
-                AppState.wakeWordDetected = true;
-                speakResponse(getWakeResponse());
-                setTimeout(() => { AppState.wakeWordDetected = false; }, 5000);
+                console.log('🎤 Wake word detected:', wake);
+                voiceState.wakeWordDetected = true;
+                
+                // Get random wake response
+                const responses = VOICE_RESPONSES[currentLang].wake;
+                const response = responses[Math.floor(Math.random() * responses.length)];
+                speakResponse(response);
+                
+                // Show visual feedback
+                const voiceDisplay = document.getElementById('voiceCommandText');
+                if (voiceDisplay) {
+                    voiceDisplay.textContent = `🎤 ${response}`;
+                    voiceDisplay.style.background = 'rgba(0,0,0,0.4)';
+                    setTimeout(() => {
+                        if (voiceState.isListening) {
+                            voiceDisplay.textContent = '🎤 Listening for command...';
+                        }
+                    }, 2000);
+                }
+                
+                // Reset wake word after 8 seconds of inactivity
+                if (voiceState.wakeWordTimer) clearTimeout(voiceState.wakeWordTimer);
+                voiceState.wakeWordTimer = setTimeout(() => {
+                    voiceState.wakeWordDetected = false;
+                    console.log('🎤 Wake word timeout - listening for wake word again');
+                    const voiceDisplay = document.getElementById('voiceCommandText');
+                    if (voiceDisplay && voiceState.isListening) {
+                        const t = Translations[AppState.language];
+                        voiceDisplay.textContent = t.listening || '🎤 Listening for "Hey Estiph" or "ሰላም እስቲፍ"...';
+                    }
+                }, 8000);
                 return;
             }
         }
         return;
     }
     
+    // Process command after wake word detected
     const commands = {
         en: {
             'light on': () => toggleDevice(0),
@@ -926,88 +1094,92 @@ function processVoiceInput(transcript) {
             'fan off': () => toggleDevice(1),
             'ac on': () => toggleDevice(2),
             'ac off': () => toggleDevice(2),
+            'tv on': () => toggleDevice(3),
+            'tv off': () => toggleDevice(3),
+            'heater on': () => toggleDevice(4),
+            'heater off': () => toggleDevice(4),
+            'pump on': () => toggleDevice(5),
+            'pump off': () => toggleDevice(5),
             'all on': () => masterAllOn(),
             'all off': () => masterAllOff(),
-            'temperature': () => speakResponse(`Temperature is ${AppState.systemStats.temperature} degrees`)
+            'temperature': () => speakResponse(`Temperature is ${AppState.systemStats.temperature} degrees Celsius`),
+            'help': () => speakResponse(VOICE_RESPONSES.en.help[0]),
+            'stop': () => stopVoiceRecognition()
         },
         am: {
             'መብራት አብራ': () => toggleDevice(0),
             'መብራት አጥፋ': () => toggleDevice(0),
             'ማራገቢያ አብራ': () => toggleDevice(1),
             'ማራገቢያ አጥፋ': () => toggleDevice(1),
+            'አየር ማቀዝቀዣ አብራ': () => toggleDevice(2),
+            'አየር ማቀዝቀዣ አጥፋ': () => toggleDevice(2),
+            'ቴሌቪዥን አብራ': () => toggleDevice(3),
+            'ቴሌቪዥን አጥፋ': () => toggleDevice(3),
+            'ማሞቂያ አብራ': () => toggleDevice(4),
+            'ማሞቂያ አጥፋ': () => toggleDevice(4),
+            'ፓምፕ አብራ': () => toggleDevice(5),
+            'ፓምፕ አጥፋ': () => toggleDevice(5),
             'ሁሉንም አብራ': () => masterAllOn(),
             'ሁሉንም አጥፋ': () => masterAllOff(),
-            'ሙቀቱ ስንት ነው': () => speakResponse(`ሙቀቱ ${AppState.systemStats.temperature} ዲግሪ ነው`)
+            'ሙቀቱ ስንት ነው': () => speakResponse(`ሙቀቱ ${AppState.systemStats.temperature} ዲግሪ ነው`),
+            'እርዳታ': () => speakResponse(VOICE_RESPONSES.am.help[0]),
+            'አቁም': () => stopVoiceRecognition()
         }
     };
     
-    const currentCommands = commands[AppState.language];
+    const currentCommands = commands[currentLang];
     for (const [cmd, action] of Object.entries(currentCommands)) {
-        if (transcript.includes(cmd.toLowerCase())) {
+        if (transcript.includes(cmd)) {
+            console.log('🎤 Command executed:', cmd);
             action();
-            speakResponse(getConfirmationResponse());
-            AppState.wakeWordDetected = false;
+            
+            // Get confirmation response
+            const responses = VOICE_RESPONSES[currentLang].confirm;
+            const response = responses[Math.floor(Math.random() * responses.length)];
+            speakResponse(response);
+            
+            // Reset wake word after command
+            voiceState.wakeWordDetected = false;
+            if (voiceState.wakeWordTimer) clearTimeout(voiceState.wakeWordTimer);
+            
+            // Update voice display
+            const voiceDisplay = document.getElementById('voiceCommandText');
+            if (voiceDisplay && voiceState.isListening) {
+                const t = Translations[AppState.language];
+                voiceDisplay.textContent = t.listening || '🎤 Listening for "Hey Estiph" or "ሰላም እስቲፍ"...';
+            }
             return;
         }
     }
     
-    speakResponse(getNotFoundResponse());
+    // No command found
+    console.log('🎤 No command matched:', transcript);
+    if (voiceState.wakeWordDetected) {
+        const responses = VOICE_RESPONSES[currentLang].error;
+        const response = responses[Math.floor(Math.random() * responses.length)];
+        speakResponse(response);
+    }
 }
 
 function speakResponse(text) {
+    if (voiceState.isSpeaking) {
+        window.speechSynthesis.cancel();
+    }
+    
     if ('speechSynthesis' in window) {
+        voiceState.isSpeaking = true;
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = AppState.language === 'en' ? 'en-US' : 'am-ET';
         utterance.rate = 0.9;
-        window.speechSynthesis.cancel();
+        utterance.pitch = 1;
+        utterance.onend = () => {
+            voiceState.isSpeaking = false;
+        };
+        utterance.onerror = () => {
+            voiceState.isSpeaking = false;
+        };
         window.speechSynthesis.speak(utterance);
-    }
-}
-
-function getWakeResponse() {
-    const responses = {
-        en: ['Yes?', 'I\'m listening', 'How can I help?'],
-        am: ['አዎ?', 'እያዳመጥኩ ነው', 'ምን እረዳሃለሁ?']
-    };
-    const list = responses[AppState.language];
-    return list[Math.floor(Math.random() * list.length)];
-}
-
-function getConfirmationResponse() {
-    const responses = {
-        en: ['Done!', 'Command executed', 'All set!'],
-        am: ['ተሰራ!', 'ትእዛዝ ተፈጸመ', 'ተዘጋጀ!']
-    };
-    const list = responses[AppState.language];
-    return list[Math.floor(Math.random() * list.length)];
-}
-
-function getNotFoundResponse() {
-    const responses = {
-        en: ['Sorry, I didn\'t understand', 'Could you repeat that?'],
-        am: ['ይቅርታ አልገባኝም', 'እባክህ ድገምልኝ']
-    };
-    const list = responses[AppState.language];
-    return list[Math.floor(Math.random() * list.length)];
-}
-
-function updateVoiceUI(isListening) {
-    const voiceBtn = document.getElementById('voiceBtn');
-    const voiceDisplay = document.getElementById('voiceCommandText');
-    const t = Translations[AppState.language];
-    
-    if (voiceBtn) {
-        if (isListening) {
-            voiceBtn.classList.add('listening');
-            voiceBtn.innerHTML = '<i class="fas fa-microphone-alt"></i>';
-        } else {
-            voiceBtn.classList.remove('listening');
-            voiceBtn.innerHTML = '<i class="fas fa-microphone-alt"></i>';
-        }
-    }
-    
-    if (voiceDisplay) {
-        voiceDisplay.textContent = isListening ? t.listening : t.wakeWord;
+        console.log('🎤 Speaking:', text);
     }
 }
 
