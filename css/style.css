@@ -1343,8 +1343,9 @@ select {
     /* UPDATED: Device Grid - 2 Columns on Mobile */
     .device-grid,
     .all-devices-grid {
+        display: grid;
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: var(--spacing-sm);
+        gap: 12px;
     }
     
     .device-card {
