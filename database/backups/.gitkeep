@@ -1,0 +1,7 @@
+# This directory contains database backups
+# Backups are automatically created by the system
+# Do not commit backup files to version control
+
+*.zip
+*.json
+*.csv

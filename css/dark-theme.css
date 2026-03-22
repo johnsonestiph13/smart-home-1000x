@@ -1,0 +1,238 @@
+/* Dark Theme Variables */
+[data-theme="dark"] {
+    --primary: #4895ef;
+    --primary-dark: #4361ee;
+    --secondary: #b5179e;
+    --success: #06d6a0;
+    --danger: #ef476f;
+    --warning: #ffd166;
+    
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --border-color: #334155;
+    
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    --card-hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Dark Mode Specific Styles */
+[data-theme="dark"] .welcome-card {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .device-card {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .device-card:hover {
+    background: #334155;
+}
+
+[data-theme="dark"] .stat-card {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .control-card {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .toast {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal {
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .search-input {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .search-input:focus {
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .select-input {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .chart-card {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .calendar-card {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .calendar-day {
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .calendar-day:hover {
+    background: var(--primary);
+}
+
+[data-theme="dark"] .schedule-item {
+    background: var(--bg-primary);
+}
+
+[data-theme="dark"] .schedule-item:hover {
+    background: var(--primary);
+    color: white;
+}
+
+[data-theme="dark"] .admin-table th {
+    color: var(--text-secondary);
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .admin-table td {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .admin-table tr:hover {
+    background: var(--bg-primary);
+}
+
+[data-theme="dark"] .notification-item {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .notification-item.unread {
+    background: linear-gradient(to right, var(--bg-secondary), #2d3748);
+}
+
+[data-theme="dark"] .faq-item {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .help-card {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .settings-card {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .settings-menu-item:hover {
+    background: var(--bg-primary);
+}
+
+[data-theme="dark"] .settings-menu-item.active {
+    background: var(--gradient-primary);
+}
+
+/* Dark Mode Scrollbar */
+[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: var(--primary);
+}
+
+/* Dark Mode Input Fields */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+/* Dark Mode Buttons */
+[data-theme="dark"] .control-btn {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .control-btn.primary {
+    background: var(--gradient-success);
+    color: white;
+}
+
+[data-theme="dark"] .control-btn.danger {
+    background: var(--gradient-danger);
+    color: white;
+}
+
+[data-theme="dark"] .control-btn.info {
+    background: var(--gradient-info);
+    color: white;
+}
+
+/* Dark Mode Cards */
+[data-theme="dark"] .card {
+    background: var(--bg-secondary);
+    box-shadow: var(--card-shadow);
+}
+
+/* Dark Mode Chart Bars */
+[data-theme="dark"] .bar {
+    background: linear-gradient(to top, var(--primary), var(--secondary));
+}
+
+/* Dark Mode Progress Bar */
+[data-theme="dark"] .progress {
+    background: var(--bg-primary);
+}
+
+[data-theme="dark"] .progress-bar {
+    background: var(--gradient-primary);
+}
+
+/* Dark Mode Toggle Switch */
+[data-theme="dark"] .slider {
+    background: var(--border-color);
+}
+
+[data-theme="dark"] input:checked + .slider {
+    background: var(--success);
+}
+
+/* Dark Mode Voice Card */
+[data-theme="dark"] .voice-card {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+}
+
+/* Dark Mode Connection Badge */
+[data-theme="dark"] .connection-badge {
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+}
+
+/* Dark Mode Language Switcher */
+[data-theme="dark"] .language-switcher {
+    background: var(--bg-primary);
+}
+
+/* Dark Mode System Status */
+[data-theme="dark"] .system-status {
+    border-top-color: var(--border-color);
+}
