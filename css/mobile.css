@@ -536,13 +536,18 @@ body {
     display: none;
     background: none;
     border: none;
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     color: var(--text-primary);
     cursor: pointer;
-    padding: 8px;
+    padding: 8px 12px;
     border-radius: 8px;
 }
 
+.menu-toggle-btn:hover {
+    background: var(--bg-tertiary);
+}
+
+/* Mobile Styles */
 @media (max-width: 768px) {
     .menu-toggle-btn {
         display: block;
@@ -558,6 +563,8 @@ body {
         width: 280px;
         height: 100vh;
         background: var(--bg-secondary);
+        box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+        overflow-y: auto;
     }
     
     .sidebar.open {
@@ -566,5 +573,22 @@ body {
     
     .main-content {
         margin-left: 0;
+        width: 100%;
+    }
+    
+    /* Overlay when sidebar is open */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        display: none;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
     }
 }

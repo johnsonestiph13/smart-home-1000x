@@ -84,7 +84,6 @@
             overflow-y: auto;
         }
         
-        /* Mobile: Sidebar hidden by default */
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -95,7 +94,6 @@
             }
         }
         
-        /* Sidebar Header */
         .sidebar-header {
             padding: 24px 20px;
             border-bottom: 1px solid var(--border-color);
@@ -130,7 +128,6 @@
             color: var(--text-secondary);
         }
         
-        /* User Profile */
         .user-profile {
             padding: 20px;
             display: flex;
@@ -168,7 +165,6 @@
             color: var(--text-secondary);
         }
         
-        /* Navigation Menu */
         .nav-menu {
             flex: 1;
             padding: 20px 0;
@@ -218,7 +214,6 @@
             font-weight: 700;
         }
         
-        /* Sidebar Footer */
         .sidebar-footer {
             padding: 20px;
             border-top: 1px solid var(--border-color);
@@ -259,7 +254,6 @@
             }
         }
         
-        /* Top Bar */
         .top-bar {
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
@@ -357,6 +351,128 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        /* ==================== LOGIN PAGE STYLES ==================== */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: fadeInUp 0.5s ease;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 15px;
+            color: white;
+        }
+        
+        .login-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .login-header p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        .input-group {
+            display: flex;
+            align-items: center;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            padding: 0 16px;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+        
+        .input-group:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+        
+        .input-group i {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 14px 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .login-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .login-footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .login-demo {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.7rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        
         /* ==================== DASHBOARD STYLES ==================== */
         .welcome-card {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -419,7 +535,6 @@
             color: var(--text-secondary);
         }
         
-        /* Device Grid */
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -433,6 +548,13 @@
         }
         
         .device-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .all-devices-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
@@ -485,23 +607,61 @@
             color: white;
         }
         
+        .device-power {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+        
         .auto-badge {
             position: absolute;
             top: 8px;
             right: 8px;
-            background: var(--warning);
-            color: var(--dark);
             padding: 2px 6px;
             border-radius: 20px;
             font-size: 0.6rem;
             font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
         }
         
-        /* Control Buttons */
+        .auto-badge.auto-on {
+            background: var(--warning);
+            color: var(--dark);
+        }
+        
+        .auto-badge.auto-off {
+            background: var(--gray);
+            color: white;
+        }
+        
+        .auto-badge:hover {
+            transform: scale(1.05);
+        }
+        
+        .auto-toggle {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: var(--bg-tertiary);
+            border: none;
+            border-radius: 20px;
+            padding: 4px 8px;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-primary);
+        }
+        
+        .auto-toggle:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
         .control-buttons {
             display: flex;
             gap: 12px;
-            margin-top: 20px;
+            margin: 20px 0;
         }
         
         .control-btn {
@@ -524,12 +684,11 @@
             color: white;
         }
         
-        /* Voice Card */
         .voice-card {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             border-radius: 20px;
             padding: 20px;
-            margin-top: 20px;
+            margin: 20px 0;
             color: white;
         }
         
@@ -542,14 +701,17 @@
             text-align: center;
         }
         
-        /* Activity Log */
         .activity-log {
             max-height: 200px;
             overflow-y: auto;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 12px;
         }
         
         .log-entry {
-            padding: 10px 0;
+            padding: 8px 0;
             border-bottom: 1px solid var(--border-color);
             font-size: 0.75rem;
             display: flex;
@@ -596,13 +758,6 @@
             justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px solid var(--border-color);
-        }
-        
-        /* ==================== DEVICES PAGE ==================== */
-        .all-devices-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
         }
         
         /* ==================== SETTINGS PAGE ==================== */
@@ -743,39 +898,43 @@
             <div class="user-profile" onclick="showUserMenu()">
                 <div class="user-avatar">AD</div>
                 <div class="user-info">
-                    <div class="name">Admin User</div>
-                    <div class="role">System Administrator</div>
+                    <div class="name" id="userName">Admin User</div>
+                    <div class="role" id="userRole">System Administrator</div>
                 </div>
             </div>
             
             <nav class="nav-menu">
                 <div class="nav-item active" onclick="navigateTo('dashboard')">
                     <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
+                    <span data-i18n="dashboard">Dashboard</span>
                 </div>
                 <div class="nav-item" onclick="navigateTo('analytics')">
                     <i class="fas fa-chart-line"></i>
-                    <span>Analytics</span>
+                    <span data-i18n="analytics">Analytics</span>
                 </div>
                 <div class="nav-item" onclick="navigateTo('devices')">
                     <i class="fas fa-microchip"></i>
-                    <span>All Devices</span>
+                    <span data-i18n="devices">All Devices</span>
                     <span class="nav-badge" id="deviceCount">6</span>
                 </div>
                 <div class="nav-item" onclick="navigateTo('automation')">
                     <i class="fas fa-robot"></i>
-                    <span>Automation</span>
+                    <span data-i18n="automation">Automation</span>
                 </div>
                 <div class="nav-item" onclick="navigateTo('settings')">
                     <i class="fas fa-cog"></i>
-                    <span>Settings</span>
+                    <span data-i18n="settings">Settings</span>
                 </div>
             </nav>
             
             <div class="sidebar-footer">
                 <button class="theme-toggle" onclick="toggleTheme()">
                     <i class="fas fa-moon" id="themeIcon"></i>
-                    <span>Dark Mode</span>
+                    <span data-i18n="darkMode">Dark Mode</span>
+                </button>
+                <button class="theme-toggle" onclick="logout()" style="margin-top: 10px; background: var(--danger); color: white;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span data-i18n="logout">Logout</span>
                 </button>
             </div>
         </aside>
@@ -783,91 +942,93 @@
         <!-- MAIN CONTENT -->
         <main class="main-content">
             <div class="top-bar">
-    <button class="menu-toggle-btn" id="menuToggle">
-        <i class="fas fa-bars"></i>
-    </button>
-    <h1 class="page-title" id="pageTitle">Dashboard</h1>
-    <div class="top-actions">
-        <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
-            <i class="fas fa-microphone"></i>
-        </button>
-        <div class="language-switcher">
-            <button class="lang-btn active" onclick="setLanguage('en')">EN</button>
-            <button class="lang-btn" onclick="setLanguage('am')">አማ</button>
-        </div>
-    </div>
-</div>
-        <!-- LOGIN PAGE -->
-<div class="page-container" id="login-page">
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="login-logo">🏠</div>
-                <h2>Estif Home</h2>
-                <p>Smart Home Control System</p>
-            </div>
-            
-            <!-- Login Form -->
-            <form id="loginForm" onsubmit="handleLogin(event)" style="display: block;">
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="loginEmail" placeholder="Email" required>
-                </div>
-                
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="loginPassword" placeholder="Password" required>
-                </div>
-                
-                <button type="submit" class="login-btn">
-                    <i class="fas fa-sign-in-alt"></i> Login
+                <button class="menu-toggle-btn" id="menuToggle">
+                    <i class="fas fa-bars"></i>
                 </button>
-            </form>
-            
-            <!-- Register Form (hidden initially) -->
-            <form id="registerForm" onsubmit="handleRegister(event)" style="display: none;">
-                <div class="input-group">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="regName" placeholder="Full Name" required>
+                <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                <div class="top-actions">
+                    <button class="voice-btn" id="voiceBtn" onclick="toggleVoiceRecognition()">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <div class="language-switcher">
+                        <button class="lang-btn active" onclick="setLanguage('en')">EN</button>
+                        <button class="lang-btn" onclick="setLanguage('am')">አማ</button>
+                    </div>
                 </div>
-                
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="regEmail" placeholder="Email" required>
-                </div>
-                
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="regPassword" placeholder="Password" required>
-                </div>
-                
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required>
-                </div>
-                
-                <button type="submit" class="login-btn">
-                    <i class="fas fa-user-plus"></i> Register
-                </button>
-            </form>
-            
-            <div class="login-footer switch-form">
-                <p>Don't have an account? <a href="#" onclick="showRegisterOnly()">Register</a></p>
             </div>
             
-            <div class="login-demo">
-                <p>Demo Accounts:</p>
-                <p>📧 johnsonestiph13@gmail.com /Jon@2127</p>
-                <p>👨‍👩‍👧 family@estifhome.com / family123</p>
-                <p>👤 guest@estifhome.com / guest123</p>
+            <!-- LOGIN PAGE -->
+            <div class="page-container" id="login-page">
+                <div class="login-container">
+                    <div class="login-card">
+                        <div class="login-header">
+                            <div class="login-logo">🏠</div>
+                            <h2>Estif Home</h2>
+                            <p>Smart Home Control System</p>
+                        </div>
+                        
+                        <!-- Login Form -->
+                        <form id="loginForm" onsubmit="handleLogin(event)" style="display: block;">
+                            <div class="input-group">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" id="loginEmail" placeholder="Email" required>
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="loginPassword" placeholder="Password" required>
+                            </div>
+                            
+                            <button type="submit" class="login-btn">
+                                <i class="fas fa-sign-in-alt"></i> <span data-i18n="login">Login</span>
+                            </button>
+                        </form>
+                        
+                        <!-- Register Form -->
+                        <form id="registerForm" onsubmit="handleRegister(event)" style="display: none;">
+                            <div class="input-group">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="regName" placeholder="Full Name" required>
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" id="regEmail" placeholder="Email" required>
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="regPassword" placeholder="Password" required>
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required>
+                            </div>
+                            
+                            <button type="submit" class="login-btn">
+                                <i class="fas fa-user-plus"></i> <span data-i18n="register">Register</span>
+                            </button>
+                        </form>
+                        
+                        <div class="login-footer switch-form">
+                            <p><span data-i18n="noAccount">Don't have an account?</span> <a href="#" onclick="showRegisterOnly()"><span data-i18n="register">Register</span></a></p>
+                        </div>
+                        
+                        <div class="login-demo">
+                            <p>Demo Accounts:</p>
+                            <p>📧 johnsonestiph13@gmail.com / Jon@2127</p>
+                            <p>👨‍👩‍👧 family@estifhome.com / family123</p>
+                            <p>👤 guest@estifhome.com / guest123</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
+            
             <!-- DASHBOARD PAGE -->
-            <div class="page-container active" id="dashboard-page">
+            <div class="page-container" id="dashboard-page">
                 <div class="welcome-card">
-                    <h2 id="welcomeMsg">Welcome back, Admin!</h2>
+                    <h2 id="welcomeMsg">Welcome back!</h2>
                     <p id="welcomeSub">Your smart home is running smoothly</p>
                 </div>
                 
@@ -875,28 +1036,28 @@
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-microchip"></i></div>
                         <div class="stat-info">
-                            <div class="stat-value" id="statTotal">6</div>
+                            <div class="stat-value" id="statTotalDevices">6</div>
                             <div class="stat-label">Total Devices</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-power-off"></i></div>
                         <div class="stat-info">
-                            <div class="stat-value" id="statActive">0</div>
+                            <div class="stat-value" id="statActiveDevices">0</div>
                             <div class="stat-label">Active Now</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-robot"></i></div>
                         <div class="stat-info">
-                            <div class="stat-value" id="statAuto">0</div>
+                            <div class="stat-value" id="statAutoMode">0</div>
                             <div class="stat-label">Auto Mode</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-temperature-high"></i></div>
                         <div class="stat-info">
-                            <div class="stat-value" id="statTemp">23°C</div>
+                            <div class="stat-value" id="statTemperature">23°C</div>
                             <div class="stat-label">Temperature</div>
                         </div>
                     </div>
@@ -917,10 +1078,10 @@
                         <i class="fas fa-microphone-alt"></i>
                         <strong>Voice Assistant</strong>
                     </div>
-                    <div class="voice-display" id="voiceDisplay">
+                    <div class="voice-display" id="voiceCommandText">
                         Say "Hey Estiph" or "ሰላም እስቲፍ"
                     </div>
-                    <button class="control-btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="toggleVoice()">
+                    <button class="control-btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="toggleVoiceRecognition()">
                         <i class="fas fa-microphone"></i> Start Listening
                     </button>
                 </div>
@@ -973,7 +1134,7 @@
                             <div class="setting-desc">Auto on when temp > 26°C</div>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" checked id="autoAC">
+                            <input type="checkbox" checked id="autoAC" onchange="toggleAutoModeRule(2, this.checked)">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -983,7 +1144,7 @@
                             <div class="setting-desc">Auto on when temp < 18°C</div>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" checked id="autoHeater">
+                            <input type="checkbox" checked id="autoHeater" onchange="toggleAutoModeRule(4, this.checked)">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -1048,7 +1209,7 @@
                             <div class="setting-label">Temperature Unit</div>
                             <div class="setting-desc">Celsius or Fahrenheit</div>
                         </div>
-                        <select id="tempUnit" style="padding: 8px; border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                        <select id="tempUnit" onchange="updateTempUnit(this.value)" style="padding: 8px; border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color);">
                             <option value="c">Celsius (°C)</option>
                             <option value="f">Fahrenheit (°F)</option>
                         </select>
@@ -1060,463 +1221,45 @@
     
     <div class="toast-container" id="toastContainer"></div>
     
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Main App JS -->
+    <script src="js/app.js"></script>
+    
     <script>
-        // ==================== APPLICATION STATE ====================
-        let AppState = {
-            language: localStorage.getItem('language') || 'en',
-            theme: localStorage.getItem('theme') || 'light',
-            currentPage: 'dashboard',
-            devices: [
-                { id: 0, icon: "💡", nameEn: "Light", nameAm: "መብራት", roomEn: "Living Room", roomAm: "ሳሎን", gpio: 23, power: 10, state: false, autoMode: false },
-                { id: 1, icon: "🌀", nameEn: "Fan", nameAm: "ማራገቢያ", roomEn: "Bedroom", roomAm: "መኝታ", gpio: 22, power: 40, state: false, autoMode: true },
-                { id: 2, icon: "❄️", nameEn: "AC", nameAm: "አየር ማቀዝቀዣ", roomEn: "Master", roomAm: "ዋና", gpio: 21, power: 120, state: false, autoMode: true },
-                { id: 3, icon: "📺", nameEn: "TV", nameAm: "ቴሌቪዥን", roomEn: "Entertainment", roomAm: "መዝናኛ", gpio: 19, power: 80, state: false, autoMode: false },
-                { id: 4, icon: "🔥", nameEn: "Heater", nameAm: "ማሞቂያ", roomEn: "Bathroom", roomAm: "መታጠቢያ", gpio: 18, power: 1500, state: false, autoMode: true },
-                { id: 5, icon: "💧", nameEn: "Pump", nameAm: "ፓምፕ", roomEn: "Garden", roomAm: "አትክልት", gpio: 5, power: 250, state: false, autoMode: false }
-            ],
-            isListening: false,
-            recognition: null,
-            activityLog: []
-        };
-        
-        // ==================== TRANSLATIONS ====================
-        const t = {
-            en: {
-                dashboard: "Dashboard",
-                analytics: "Analytics",
-                devices: "All Devices",
-                automation: "Automation",
-                settings: "Settings",
-                on: "ON",
-                off: "OFF",
-                connected: "Connected",
-                welcome: "Welcome back, Admin!",
-                welcomeSub: "Your smart home is running smoothly",
-                totalDevices: "Total Devices",
-                activeNow: "Active Now",
-                autoMode: "Auto Mode",
-                temperature: "Temperature",
-                quickDevices: "Quick Devices",
-                allOn: "ALL ON",
-                allOff: "ALL OFF",
-                voiceAssistant: "Voice Assistant",
-                voiceHint: 'Say "Hey Estiph" or "ሰላም እስቲፍ"',
-                recentActivity: "Recent Activity"
-            },
-            am: {
-                dashboard: "ዳሽቦርድ",
-                analytics: "ትንተና",
-                devices: "ሁሉም መሳሪያዎች",
-                automation: "አውቶሜሽን",
-                settings: "ቅንብሮች",
-                on: "በርቷል",
-                off: "ጠፍቷል",
-                connected: "ተገናኝቷል",
-                welcome: "እንኳን ደህና መጡ አስተዳዳሪ!",
-                welcomeSub: "ቤትዎ በሚገባ እየሰራ ነው",
-                totalDevices: "ጠቅላላ መሳሪያዎች",
-                activeNow: "አሁን የሚሰሩ",
-                autoMode: "አውቶማቲክ",
-                temperature: "ሙቀት",
-                quickDevices: "ፈጣን መሳሪያዎች",
-                allOn: "ሁሉንም አብራ",
-                allOff: "ሁሉንም አጥፋ",
-                voiceAssistant: "የድምጽ ረዳት",
-                voiceHint: '"ሰላም እስቲፍ" ወይም "Hey Estiph" ይበሉ',
-                recentActivity: "የቅርብ ጊዜ እንቅስቃሴ"
-            }
-        };
-        
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            applyTheme();
-            updateUILanguage();
-            renderDeviceGrid();
-            renderAllDevicesGrid();
-            updateStatistics();
-            initCharts();
-            initVoiceRecognition();
-            addActivityLog("System started");
-            
-            // Menu toggle for mobile
-            document.getElementById('menuToggle').addEventListener('click', () => {
-                document.getElementById('sidebar').classList.toggle('open');
-            });
-            
-            // Close sidebar when clicking outside on mobile
-            document.addEventListener('click', (e) => {
-                const sidebar = document.getElementById('sidebar');
-                const menuToggle = document.getElementById('menuToggle');
-                if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
-                    if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-                        sidebar.classList.remove('open');
-                    }
-                }
-            });
-        });
-        
-        // ==================== THEME ====================
-        function applyTheme() {
-            if (AppState.theme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                document.getElementById('themeIcon').className = 'fas fa-sun';
-                document.getElementById('darkModeToggle').checked = true;
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-                document.getElementById('themeIcon').className = 'fas fa-moon';
-                document.getElementById('darkModeToggle').checked = false;
-            }
-        }
-        
-        function toggleTheme() {
-            AppState.theme = AppState.theme === 'light' ? 'dark' : 'light';
-            localStorage.setItem('theme', AppState.theme);
-            applyTheme();
-            showToast(`${AppState.theme === 'light' ? 'Light' : 'Dark'} mode`, 'info');
-        }
-        
-        // ==================== LANGUAGE ====================
-        function setLanguage(lang) {
-            AppState.language = lang;
-            localStorage.setItem('language', lang);
-            updateUILanguage();
-            renderDeviceGrid();
-            renderAllDevicesGrid();
-            updateStatistics();
-            
-            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            showToast(`Language: ${lang === 'en' ? 'English' : 'Amharic'}`, 'success');
-        }
-        
-        function updateUILanguage() {
-            const lang = t[AppState.language];
-            document.getElementById('welcomeMsg').textContent = lang.welcome;
-            document.getElementById('welcomeSub').textContent = lang.welcomeSub;
-            document.getElementById('pageTitle').textContent = lang[AppState.currentPage];
-            document.getElementById('voiceDisplay').textContent = lang.voiceHint;
-            
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (lang[key]) el.textContent = lang[key];
-            });
-        }
-        
-        // ==================== NAVIGATION ====================
-        function navigateTo(page) {
-            AppState.currentPage = page;
-            
-            document.querySelectorAll('.page-container').forEach(p => p.classList.remove('active'));
-            document.getElementById(`${page}-page`).classList.add('active');
-            
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            event.target.closest('.nav-item').classList.add('active');
-            
-            const lang = t[AppState.language];
-            document.getElementById('pageTitle').textContent = lang[page];
-            
-            // Close sidebar on mobile after navigation
-            if (window.innerWidth <= 768) {
-                document.getElementById('sidebar').classList.remove('open');
-            }
-        }
-        
-        // ==================== DEVICE RENDERING ====================
-        function renderDeviceGrid() {
-            const grid = document.getElementById('deviceGrid');
-            const lang = AppState.language;
-            let html = '';
-            
-            AppState.devices.slice(0, 4).forEach(device => {
-                const name = lang === 'en' ? device.nameEn : device.nameAm;
-                const room = lang === 'en' ? device.roomEn : device.roomAm;
-                const stateText = device.state ? (lang === 'en' ? 'ON' : 'በርቷል') : (lang === 'en' ? 'OFF' : 'ጠፍቷል');
-                
-                html += `
-                    <div class="device-card ${device.state ? 'active' : ''}" onclick="toggleDevice(${device.id})">
-                        ${device.autoMode ? '<div class="auto-badge">AUTO</div>' : ''}
-                        <div class="device-icon">${device.icon}</div>
-                        <div class="device-name">${name}</div>
-                        <div class="device-room">${room}</div>
-                        <div class="device-state">${stateText}</div>
-                    </div>
-                `;
-            });
-            
-            grid.innerHTML = html;
-        }
-        
-        function renderAllDevicesGrid() {
-            const grid = document.getElementById('allDevicesGrid');
-            const lang = AppState.language;
-            let html = '';
-            
-            AppState.devices.forEach(device => {
-                const name = lang === 'en' ? device.nameEn : device.nameAm;
-                const room = lang === 'en' ? device.roomEn : device.roomAm;
-                const stateText = device.state ? (lang === 'en' ? 'ON' : 'በርቷል') : (lang === 'en' ? 'OFF' : 'ጠፍቷል');
-                
-                html += `
-                    <div class="device-card ${device.state ? 'active' : ''}" onclick="toggleDevice(${device.id})">
-                        ${device.autoMode ? '<div class="auto-badge">AUTO</div>' : ''}
-                        <div class="device-icon">${device.icon}</div>
-                        <div class="device-name">${name}</div>
-                        <div class="device-room">${room}</div>
-                        <div class="device-state">${stateText}</div>
-                        <div style="font-size: 0.65rem; margin-top: 5px;">GPIO ${device.gpio}</div>
-                    </div>
-                `;
-            });
-            
-            grid.innerHTML = html;
-            document.getElementById('deviceCount').textContent = AppState.devices.length;
-        }
-        
-        // ==================== DEVICE CONTROL ====================
-        function toggleDevice(id) {
-            const device = AppState.devices.find(d => d.id === id);
-            if (!device) return;
-            
-            if (device.autoMode) {
-                showToast('Device is in AUTO mode. Disable auto mode first.', 'warning');
-                return;
-            }
-            
-            device.state = !device.state;
-            renderDeviceGrid();
-            renderAllDevicesGrid();
-            updateStatistics();
-            
-            const lang = AppState.language;
-            const name = lang === 'en' ? device.nameEn : device.nameAm;
-            addActivityLog(`${name} turned ${device.state ? 'ON' : 'OFF'}`);
-            showToast(`${name} ${device.state ? 'ON' : 'OFF'}`, device.state ? 'success' : 'info');
-        }
-        
-        function masterAllOn() {
-            AppState.devices.forEach(device => {
-                if (!device.autoMode) device.state = true;
-            });
-            renderDeviceGrid();
-            renderAllDevicesGrid();
-            updateStatistics();
-            addActivityLog('All devices turned ON');
-            showToast('All devices ON', 'success');
-        }
-        
-        function masterAllOff() {
-            AppState.devices.forEach(device => {
-                if (!device.autoMode) device.state = false;
-            });
-            renderDeviceGrid();
-            renderAllDevicesGrid();
-            updateStatistics();
-            addActivityLog('All devices turned OFF');
-            showToast('All devices OFF', 'info');
-        }
-        
-        // ==================== STATISTICS ====================
-        function updateStatistics() {
-            const active = AppState.devices.filter(d => d.state).length;
-            const auto = AppState.devices.filter(d => d.autoMode).length;
-            
-            document.getElementById('statTotal').textContent = AppState.devices.length;
-            document.getElementById('statActive').textContent = active;
-            document.getElementById('statAuto').textContent = auto;
-        }
-        
-        // ==================== VOICE RECOGNITION ====================
-        function initVoiceRecognition() {
-            if (!('webkitSpeechRecognition' in window)) {
-                console.log('Voice recognition not supported');
-                return;
-            }
-            
-            AppState.recognition = new webkitSpeechRecognition();
-            AppState.recognition.continuous = true;
-            AppState.recognition.interimResults = true;
-            
-            AppState.recognition.onstart = () => {
-                AppState.isListening = true;
-                document.getElementById('voiceBtn').classList.add('listening');
-                showToast('Listening...', 'info');
-            };
-            
-            AppState.recognition.onresult = (event) => {
-                const transcript = Array.from(event.results)
-                    .map(result => result[0].transcript.toLowerCase())
-                    .join(' ');
-                processVoiceCommand(transcript);
-            };
-            
-            AppState.recognition.onerror = () => stopVoice();
-            AppState.recognition.onend = () => {
-                if (AppState.isListening) AppState.recognition.start();
-            };
-        }
-        
-        function toggleVoice() {
-            if (AppState.isListening) {
-                stopVoice();
-            } else {
-                startVoice();
-            }
-        }
-        
-        function startVoice() {
-            if (AppState.recognition) {
-                AppState.recognition.lang = AppState.language === 'en' ? 'en-US' : 'am-ET';
-                AppState.recognition.start();
-                AppState.isListening = true;
-            }
-        }
-        
-        function stopVoice() {
-            if (AppState.recognition) {
-                AppState.recognition.stop();
-                AppState.isListening = false;
-                document.getElementById('voiceBtn').classList.remove('listening');
-            }
-        }
-        
-        function processVoiceCommand(transcript) {
-            const lang = AppState.language;
-            
-            // Wake words
-            const wakeWords = {
-                en: ['hey estiph', 'hey estif', 'estiph'],
-                am: ['ሰላም እስቲፍ', 'እስቲፍ']
-            };
-            
-            // Commands
-            const commands = {
-                en: {
-                    'light on': () => toggleDevice(0),
-                    'light off': () => toggleDevice(0),
-                    'fan on': () => toggleDevice(1),
-                    'fan off': () => toggleDevice(1),
-                    'ac on': () => toggleDevice(2),
-                    'ac off': () => toggleDevice(2),
-                    'all on': () => masterAllOn(),
-                    'all off': () => masterAllOff()
-                },
-                am: {
-                    'መብራት አብራ': () => toggleDevice(0),
-                    'መብራት አጥፋ': () => toggleDevice(0),
-                    'ማራገቢያ አብራ': () => toggleDevice(1),
-                    'ማራገቢያ አጥፋ': () => toggleDevice(1),
-                    'ሁሉንም አብራ': () => masterAllOn(),
-                    'ሁሉንም አጥፋ': () => masterAllOff()
-                }
-            };
-            
-            for (const wake of wakeWords[lang]) {
-                if (transcript.includes(wake)) {
-                    showToast('Listening for command...', 'info');
-                    speakResponse(lang === 'en' ? 'Yes?' : 'አዎ?');
-                    return;
-                }
-            }
-            
-            for (const [cmd, action] of Object.entries(commands[lang])) {
-                if (transcript.includes(cmd)) {
-                    action();
-                    speakResponse(lang === 'en' ? 'Done!' : 'ተሰራ!');
-                    return;
+        // Helper function for auto mode rules
+        function toggleAutoModeRule(deviceId, enabled) {
+            if (window.toggleAutoMode) {
+                // Find device and toggle auto mode
+                const device = window.AppState?.devices?.find(d => d.id === deviceId);
+                if (device && device.autoMode !== enabled) {
+                    window.toggleAutoMode(deviceId);
                 }
             }
         }
         
-        function speakResponse(text) {
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = AppState.language === 'en' ? 'en-US' : 'am-ET';
-                window.speechSynthesis.cancel();
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-        
-        // ==================== CHARTS ====================
-        let energyChart;
-        
-        function initCharts() {
-            const ctx = document.getElementById('energyChart').getContext('2d');
-            energyChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['12AM', '3AM', '6AM', '9AM', '12PM', '3PM', '6PM', '9PM'],
-                    datasets: [{
-                        label: 'Watts',
-                        data: [45, 32, 28, 65, 89, 124, 156, 98],
-                        borderColor: '#4361ee',
-                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'top' } }
+        function updateTempUnit(unit) {
+            localStorage.setItem('tempUnit', unit);
+            // Update temperature display
+            const tempElement = document.getElementById('statTemperature');
+            if (tempElement && window.AppState?.systemStats?.temperature) {
+                const celsius = window.AppState.systemStats.temperature;
+                if (unit === 'f') {
+                    const fahrenheit = (celsius * 9/5) + 32;
+                    tempElement.textContent = `${Math.round(fahrenheit)}°F`;
+                } else {
+                    tempElement.textContent = `${Math.round(celsius)}°C`;
                 }
-            });
-            
-            const usageStats = document.getElementById('usageStats');
-            usageStats.innerHTML = `
-                <div class="stat-item"><span>Light</span><span>10W</span></div>
-                <div class="stat-item"><span>Fan</span><span>40W</span></div>
-                <div class="stat-item"><span>AC</span><span>120W</span></div>
-                <div class="stat-item"><span>TV</span><span>80W</span></div>
-                <div class="stat-item"><span>Heater</span><span>1500W</span></div>
-                <div class="stat-item"><span>Pump</span><span>250W</span></div>
-            `;
-            
-            const peakHours = document.getElementById('peakHours');
-            peakHours.innerHTML = `
-                <div class="stat-item"><span>Morning (6-9AM)</span><span>45%</span></div>
-                <div class="stat-item"><span>Afternoon (12-3PM)</span><span>32%</span></div>
-                <div class="stat-item"><span>Evening (6-9PM)</span><span>78%</span></div>
-                <div class="stat-item"><span>Night (9PM-6AM)</span><span>23%</span></div>
-            `;
-        }
-        
-        // ==================== ACTIVITY LOG ====================
-        function addActivityLog(message) {
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const logContainer = document.getElementById('activityLog');
-            const entry = document.createElement('div');
-            entry.className = 'log-entry';
-            entry.innerHTML = `<span class="log-time">${time}</span><span>${message}</span>`;
-            logContainer.insertBefore(entry, logContainer.firstChild);
-            
-            while (logContainer.children.length > 15) {
-                logContainer.removeChild(logContainer.lastChild);
             }
         }
         
-        // ==================== TOAST ====================
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
-            toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+        // Load saved temp unit
+        const savedUnit = localStorage.getItem('tempUnit');
+        if (savedUnit && document.getElementById('tempUnit')) {
+            document.getElementById('tempUnit').value = savedUnit;
+            updateTempUnit(savedUnit);
         }
-        
-        function showUserMenu() { showToast('User Profile', 'info'); }
-        
-        // Expose functions globally
-        window.navigateTo = navigateTo;
-        window.setLanguage = setLanguage;
-        window.toggleTheme = toggleTheme;
-        window.toggleDevice = toggleDevice;
-        window.masterAllOn = masterAllOn;
-        window.masterAllOff = masterAllOff;
-        window.toggleVoice = toggleVoice;
-        window.showUserMenu = showUserMenu;
     </script>
 </body>
 </html>

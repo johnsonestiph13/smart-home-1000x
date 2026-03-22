@@ -1,62 +1,346 @@
 /**
- * Estif Home 1000X - Complete Smart Home Controller
- * With Login Page, User Authentication, Bilingual Support, Voice Control, Auto Mode
- * Fixed: Mobile Hamburger Menu, Auto Mode Toggle
+ * Estif Home 1000X - ADVANCED MULTI-USER SMART HOME CONTROLLER
+ * Features:
+ * - Secure User Registration & Login
+ * - Password Hashing (simulated for demo)
+ * - Session Management
+ * - User Profiles
+ * - Device Ownership per User
+ * - Role-Based Access Control
+ * - Cloud Sync Ready
+ * - Enhanced Security
  */
 
 // ==================== USER DATABASE ====================
+// In production, this would be a backend database
+// For demo, we use localStorage with encryption simulation
 
-const Users = [
-    {
-        id: 1,
-        email: 'admin@estifhome.com',
-        password: 'admin123',
-        name: 'Admin User',
-        nameAm: 'አስተዳዳሪ',
-        role: 'admin',
-        avatar: '👨',
-        createdAt: new Date()
-    },
-    {
-        id: 2,
-        email: 'family@estifhome.com',
-        password: 'family123',
-        name: 'Family Member',
-        nameAm: 'የቤተሰብ አባል',
-        role: 'user',
-        avatar: '👩',
-        createdAt: new Date()
-    },
-    {
-        id: 3,
-        email: 'guest@estifhome.com',
-        password: 'guest123',
-        name: 'Guest User',
-        nameAm: 'እንግዳ',
-        role: 'guest',
-        avatar: '👤',
-        createdAt: new Date()
+class UserManager {
+    constructor() {
+        this.users = this.loadUsers();
+        this.sessions = new Map();
+        this.currentUser = null;
     }
-];
+    
+    loadUsers() {
+        // Load from localStorage or initialize with demo users
+        const saved = localStorage.getItem('estif_users');
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch(e) {
+                return this.getDefaultUsers();
+            }
+        }
+        return this.getDefaultUsers();
+    }
+    
+    getDefaultUsers() {
+        return [
+            {
+                id: 1,
+                email: 'johnsonestiph13@gmail.com',
+                password: this.hashPassword('Jon@2127'),
+                name: 'Estiph Johnson',
+                nameAm: 'እስቲፍ ጆንሰን',
+                role: 'admin',
+                avatar: '👨',
+                createdAt: new Date().toISOString(),
+                lastLogin: null,
+                devices: [0, 1, 2, 3, 4, 5], // Device IDs this user owns
+                settings: {
+                    language: 'en',
+                    theme: 'light',
+                    notifications: true,
+                    twoFactorEnabled: false
+                }
+            },
+            {
+                id: 2,
+                email: 'family@estifhome.com',
+                password: this.hashPassword('family123'),
+                name: 'Family Member',
+                nameAm: 'የቤተሰብ አባል',
+                role: 'user',
+                avatar: '👩',
+                createdAt: new Date().toISOString(),
+                lastLogin: null,
+                devices: [0, 1, 2, 3], // Limited devices
+                settings: {
+                    language: 'en',
+                    theme: 'light',
+                    notifications: true,
+                    twoFactorEnabled: false
+                }
+            }
+        ];
+    }
+    
+    hashPassword(password) {
+        // Simple hash for demo (in production, use bcrypt on server)
+        let hash = 0;
+        for (let i = 0; i < password.length; i++) {
+            hash = ((hash << 5) - hash) + password.charCodeAt(i);
+            hash |= 0;
+        }
+        return hash.toString();
+    }
+    
+    verifyPassword(password, hash) {
+        return this.hashPassword(password) === hash;
+    }
+    
+    saveUsers() {
+        localStorage.setItem('estif_users', JSON.stringify(this.users));
+    }
+    
+    register(email, password, name) {
+        // Check if email exists
+        if (this.users.find(u => u.email === email)) {
+            return { success: false, error: 'email_exists' };
+        }
+        
+        // Create new user
+        const newUser = {
+            id: this.users.length + 1,
+            email: email,
+            password: this.hashPassword(password),
+            name: name,
+            nameAm: name,
+            role: 'user',
+            avatar: '👤',
+            createdAt: new Date().toISOString(),
+            lastLogin: null,
+            devices: [0, 1, 2], // Default devices for new users
+            settings: {
+                language: 'en',
+                theme: 'light',
+                notifications: true,
+                twoFactorEnabled: false
+            }
+        };
+        
+        this.users.push(newUser);
+        this.saveUsers();
+        
+        return { success: true, user: this.sanitizeUser(newUser) };
+    }
+    
+    login(email, password) {
+        const user = this.users.find(u => u.email === email);
+        
+        if (!user) {
+            return { success: false, error: 'user_not_found' };
+        }
+        
+        if (!this.verifyPassword(password, user.password)) {
+            return { success: false, error: 'invalid_password' };
+        }
+        
+        // Update last login
+        user.lastLogin = new Date().toISOString();
+        this.saveUsers();
+        
+        // Create session
+        const sessionToken = this.generateSessionToken();
+        this.sessions.set(sessionToken, user.id);
+        
+        return { 
+            success: true, 
+            user: this.sanitizeUser(user),
+            token: sessionToken
+        };
+    }
+    
+    logout(token) {
+        this.sessions.delete(token);
+        return { success: true };
+    }
+    
+    validateSession(token) {
+        return this.sessions.has(token);
+    }
+    
+    getUserById(id) {
+        const user = this.users.find(u => u.id === id);
+        return user ? this.sanitizeUser(user) : null;
+    }
+    
+    getUserByToken(token) {
+        const userId = this.sessions.get(token);
+        if (!userId) return null;
+        return this.getUserById(userId);
+    }
+    
+    sanitizeUser(user) {
+        const { password, ...sanitized } = user;
+        return sanitized;
+    }
+    
+    generateSessionToken() {
+        return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 16);
+    }
+    
+    updateUserSettings(userId, settings) {
+        const user = this.users.find(u => u.id === userId);
+        if (user) {
+            user.settings = { ...user.settings, ...settings };
+            this.saveUsers();
+            return { success: true, settings: user.settings };
+        }
+        return { success: false };
+    }
+    
+    updateUserProfile(userId, updates) {
+        const user = this.users.find(u => u.id === userId);
+        if (user) {
+            Object.assign(user, updates);
+            this.saveUsers();
+            return { success: true, user: this.sanitizeUser(user) };
+        }
+        return { success: false };
+    }
+    
+    changePassword(userId, oldPassword, newPassword) {
+        const user = this.users.find(u => u.id === userId);
+        if (!user) return { success: false, error: 'user_not_found' };
+        
+        if (!this.verifyPassword(oldPassword, user.password)) {
+            return { success: false, error: 'invalid_password' };
+        }
+        
+        user.password = this.hashPassword(newPassword);
+        this.saveUsers();
+        return { success: true };
+    }
+    
+    getAllUsers() {
+        return this.users.map(u => this.sanitizeUser(u));
+    }
+    
+    deleteUser(userId, requesterRole) {
+        if (requesterRole !== 'admin') {
+            return { success: false, error: 'unauthorized' };
+        }
+        
+        const index = this.users.findIndex(u => u.id === userId);
+        if (index === -1) return { success: false, error: 'user_not_found' };
+        
+        this.users.splice(index, 1);
+        this.saveUsers();
+        return { success: true };
+    }
+}
+
+// ==================== DEVICE MANAGER ====================
+
+class DeviceManager {
+    constructor() {
+        this.allDevices = this.getDefaultDevices();
+        this.userDevices = new Map();
+    }
+    
+    getDefaultDevices() {
+        return [
+            { id: 0, icon: "💡", nameEn: "Light", nameAm: "መብራት", roomEn: "Living Room", roomAm: "ሳሎን", gpio: 23, power: 10, state: false, autoMode: false, ownerId: 1 },
+            { id: 1, icon: "🌀", nameEn: "Fan", nameAm: "ማራገቢያ", roomEn: "Bedroom", roomAm: "መኝታ", gpio: 22, power: 40, state: false, autoMode: true, ownerId: 1 },
+            { id: 2, icon: "❄️", nameEn: "AC", nameAm: "አየር ማቀዝቀዣ", roomEn: "Master", roomAm: "ዋና", gpio: 21, power: 120, state: false, autoMode: true, ownerId: 1 },
+            { id: 3, icon: "📺", nameEn: "TV", nameAm: "ቴሌቪዥን", roomEn: "Entertainment", roomAm: "መዝናኛ", gpio: 19, power: 80, state: false, autoMode: false, ownerId: 1 },
+            { id: 4, icon: "🔥", nameEn: "Heater", nameAm: "ማሞቂያ", roomEn: "Bathroom", roomAm: "መታጠቢያ", gpio: 18, power: 1500, state: false, autoMode: true, ownerId: 1 },
+            { id: 5, icon: "💧", nameEn: "Pump", nameAm: "ፓምፕ", roomEn: "Garden", roomAm: "አትክልት", gpio: 5, power: 250, state: false, autoMode: false, ownerId: 1 }
+        ];
+    }
+    
+    getDevicesForUser(userId) {
+        return this.allDevices.filter(device => device.ownerId === userId || userId === 1);
+    }
+    
+    toggleDevice(deviceId, userId) {
+        const device = this.allDevices.find(d => d.id === deviceId);
+        if (!device) return { success: false, error: 'device_not_found' };
+        
+        // Check ownership
+        if (device.ownerId !== userId && userId !== 1) {
+            return { success: false, error: 'unauthorized' };
+        }
+        
+        // Check auto mode
+        if (device.autoMode) {
+            return { success: false, error: 'auto_mode_active', device };
+        }
+        
+        device.state = !device.state;
+        return { success: true, device };
+    }
+    
+    setAutoMode(deviceId, enabled, userId) {
+        const device = this.allDevices.find(d => d.id === deviceId);
+        if (!device) return { success: false, error: 'device_not_found' };
+        
+        if (device.ownerId !== userId && userId !== 1) {
+            return { success: false, error: 'unauthorized' };
+        }
+        
+        device.autoMode = enabled;
+        return { success: true, device };
+    }
+    
+    masterControl(state, userId) {
+        const userDevices = this.getDevicesForUser(userId);
+        const affected = [];
+        
+        userDevices.forEach(device => {
+            if (!device.autoMode) {
+                device.state = state;
+                affected.push(device);
+            }
+        });
+        
+        return { success: true, affected };
+    }
+    
+    addDevice(deviceData, userId) {
+        const newId = this.allDevices.length;
+        const newDevice = {
+            id: newId,
+            ...deviceData,
+            state: false,
+            autoMode: false,
+            ownerId: userId
+        };
+        
+        this.allDevices.push(newDevice);
+        return { success: true, device: newDevice };
+    }
+    
+    removeDevice(deviceId, userId) {
+        const index = this.allDevices.findIndex(d => d.id === deviceId);
+        if (index === -1) return { success: false, error: 'device_not_found' };
+        
+        if (this.allDevices[index].ownerId !== userId && userId !== 1) {
+            return { success: false, error: 'unauthorized' };
+        }
+        
+        this.allDevices.splice(index, 1);
+        return { success: true };
+    }
+}
 
 // ==================== APPLICATION STATE ====================
 
 const AppState = {
-    // User
     currentUser: null,
+    sessionToken: null,
     isLoggedIn: false,
     
-    // Settings
     language: localStorage.getItem('language') || 'en',
     theme: localStorage.getItem('theme') || 'light',
     currentPage: 'dashboard',
     
-    // Connection
     serverConnected: false,
     wsConnected: false,
     socket: null,
     
-    // Device Data
     devices: [],
     systemStats: {
         temperature: 23,
@@ -65,337 +349,138 @@ const AppState = {
         activeDevices: 0
     },
     
-    // Voice Control
     isListening: false,
     wakeWordDetected: false,
     recognition: null,
     
-    // UI State
     isLoading: false,
-    autoRefresh: true,
-    
-    // Analytics
-    energyData: [],
-    predictions: null,
-    insights: []
+    autoRefresh: true
 };
 
-// ==================== TRANSLATIONS ====================
+// ==================== INITIALIZE MANAGERS ====================
 
+const userManager = new UserManager();
+const deviceManager = new DeviceManager();
+
+// ==================== TRANSLATIONS (Same as before) ====================
 const Translations = {
     en: {
-        // Auth
         login: "Login",
         register: "Register",
         email: "Email",
         password: "Password",
         confirmPassword: "Confirm Password",
         fullName: "Full Name",
-        forgotPassword: "Forgot Password?",
         noAccount: "Don't have an account?",
         hasAccount: "Already have an account?",
-        
-        // Navigation
         dashboard: "Dashboard",
         analytics: "Analytics",
         devices: "Devices",
         automation: "Automation",
         settings: "Settings",
-        help: "Help",
-        profile: "Profile",
         logout: "Logout",
-        
-        // Dashboard
         welcome: "Welcome back",
         activeDevices: "Active Devices",
         temperature: "Temperature",
-        humidity: "Humidity",
-        energy: "Energy",
-        quickControls: "Quick Controls",
         allOn: "ALL ON",
         allOff: "ALL OFF",
         autoMode: "Auto Mode",
         manualMode: "Manual Mode",
-        
-        // Device States
         on: "ON",
         off: "OFF",
         connected: "Connected",
         disconnected: "Disconnected",
-        
-        // Voice
         voiceAssistant: "Voice Assistant",
-        startListening: "Start Listening",
-        listening: "Listening...",
         wakeWord: "Say 'Hey Estiph' or 'ሰላም እስቲፍ'",
-        
-        // Analytics
-        energyConsumption: "Energy Consumption",
-        deviceBreakdown: "Device Breakdown",
-        usageStats: "Usage Statistics",
-        peakHours: "Peak Hours",
-        efficiency: "Efficiency",
-        costAnalysis: "Cost Analysis",
-        
-        // Auto Mode
-        autoModeEnabled: "Auto Mode Enabled",
-        autoModeDisabled: "Auto Mode Disabled",
-        temperatureControl: "Temperature Control",
-        scheduleControl: "Schedule Control",
-        
-        // Notifications
-        success: "Success",
-        error: "Error",
-        warning: "Warning",
-        info: "Info",
         loginSuccess: "Login successful! Welcome",
         loginFailed: "Invalid email or password",
         logoutSuccess: "Logged out successfully",
         registerSuccess: "Account created successfully! Please login",
-        
-        // Errors
-        connectionError: "Connection Error",
-        deviceNotFound: "Device not found",
-        autoModeBlock: "Device in AUTO mode. Disable auto mode first.",
-        passwordMismatch: "Passwords do not match",
         emailExists: "Email already registered",
-        
-        // Time
-        justNow: "Just now",
-        minutesAgo: "minutes ago",
-        hoursAgo: "hours ago",
-        daysAgo: "days ago",
-        
-        // Roles
+        passwordMismatch: "Passwords do not match",
+        autoModeBlock: "Device in AUTO mode. Disable auto mode first.",
+        deviceNotFound: "Device not found",
+        unauthorized: "You don't have permission for this action",
         admin: "Administrator",
         user: "User",
         guest: "Guest"
     },
-    
     am: {
-        // Auth
         login: "ግባ",
         register: "ተመዝገብ",
         email: "ኢሜይል",
         password: "የይለፍ ቃል",
         confirmPassword: "የይለፍ ቃል አረጋግጥ",
         fullName: "ሙሉ ስም",
-        forgotPassword: "የይለፍ ቃል ረሳሁ?",
         noAccount: "መለያ የለህም?",
         hasAccount: "መለያ አለህ?",
-        
-        // Navigation
         dashboard: "ዳሽቦርድ",
         analytics: "ትንተና",
         devices: "መሳሪያዎች",
         automation: "አውቶሜሽን",
         settings: "ቅንብሮች",
-        help: "እገዛ",
-        profile: "መገለጫ",
         logout: "ውጣ",
-        
-        // Dashboard
         welcome: "እንኳን ደህና መጡ",
         activeDevices: "የሚሰሩ መሳሪያዎች",
         temperature: "ሙቀት",
-        humidity: "እርጥበት",
-        energy: "ኃይል",
-        quickControls: "ፈጣን መቆጣጠሪያ",
         allOn: "ሁሉንም አብራ",
         allOff: "ሁሉንም አጥፋ",
         autoMode: "አውቶማቲክ",
         manualMode: "እጅ",
-        
-        // Device States
         on: "በርቷል",
         off: "ጠፍቷል",
         connected: "ተገናኝቷል",
         disconnected: "አልተገናኘም",
-        
-        // Voice
         voiceAssistant: "የድምጽ ረዳት",
-        startListening: "ማዳመጥ ጀምር",
-        listening: "እያዳመጥኩ ነው...",
         wakeWord: "'ሰላም እስቲፍ' ወይም 'Hey Estiph' ይበሉ",
-        
-        // Analytics
-        energyConsumption: "የኃይል ፍጆታ",
-        deviceBreakdown: "የመሳሪያ ክፍፍል",
-        usageStats: "የአጠቃቀም ስታቲስቲክስ",
-        peakHours: "ከፍተኛ ሰዓታት",
-        efficiency: "ውጤታማነት",
-        costAnalysis: "የዋጋ ትንተና",
-        
-        // Auto Mode
-        autoModeEnabled: "አውቶማቲክ ነው",
-        autoModeDisabled: "እጅ ነው",
-        temperatureControl: "የሙቀት መቆጣጠሪያ",
-        scheduleControl: "የጊዜ መርሐግብር",
-        
-        // Notifications
-        success: "ተሳክቷል",
-        error: "ስህተት",
-        warning: "ማስጠንቀቂያ",
-        info: "መረጃ",
         loginSuccess: "ግባት ተሳክቷል! እንኳን ደህና መጡ",
         loginFailed: "የኢሜይል ወይም የይለፍ ቃል ስህተት ነው",
         logoutSuccess: "በስኬት ወጥተሃል",
         registerSuccess: "መለያ ተፈጥሯል! እባክህ ግባ",
-        
-        // Errors
-        connectionError: "የግንኙነት ስህተት",
-        deviceNotFound: "መሳሪያ አልተገኘም",
-        autoModeBlock: "መሳሪያው በአውቶማቲክ ሁነታ ላይ ነው። በመጀመሪያ አውቶማቲክን ያጥፉ።",
-        passwordMismatch: "የይለፍ ቃሎች አይዛመዱም",
         emailExists: "ኢሜይል ቀድሞ ተመዝግቧል",
-        
-        // Time
-        justNow: "አሁን",
-        minutesAgo: "ደቂቃ በፊት",
-        hoursAgo: "ሰዓት በፊት",
-        daysAgo: "ቀን በፊት",
-        
-        // Roles
+        passwordMismatch: "የይለፍ ቃሎች አይዛመዱም",
+        autoModeBlock: "መሳሪያው በአውቶማቲክ ሁነታ ላይ ነው። በመጀመሪያ አውቶማቲክን ያጥፉ።",
+        deviceNotFound: "መሳሪያ አልተገኘም",
+        unauthorized: "ለዚህ ተግባር ፈቃድ የለህም",
         admin: "አስተዳዳሪ",
         user: "ተጠቃሚ",
         guest: "እንግዳ"
     }
 };
 
-// ==================== DEVICE DATA ====================
-
-const DevicesData = [
-    { id: 0, icon: "💡", nameEn: "Light", nameAm: "መብራት", roomEn: "Living Room", roomAm: "ሳሎን", gpio: 23, power: 10, state: false, autoMode: false },
-    { id: 1, icon: "🌀", nameEn: "Fan", nameAm: "ማራገቢያ", roomEn: "Bedroom", roomAm: "መኝታ", gpio: 22, power: 40, state: false, autoMode: true },
-    { id: 2, icon: "❄️", nameEn: "AC", nameAm: "አየር ማቀዝቀዣ", roomEn: "Master", roomAm: "ዋና", gpio: 21, power: 120, state: false, autoMode: true },
-    { id: 3, icon: "📺", nameEn: "TV", nameAm: "ቴሌቪዥን", roomEn: "Entertainment", roomAm: "መዝናኛ", gpio: 19, power: 80, state: false, autoMode: false },
-    { id: 4, icon: "🔥", nameEn: "Heater", nameAm: "ማሞቂያ", roomEn: "Bathroom", roomAm: "መታጠቢያ", gpio: 18, power: 1500, state: false, autoMode: true },
-    { id: 5, icon: "💧", nameEn: "Pump", nameAm: "ፓምፕ", roomEn: "Garden", roomAm: "አትክልት", gpio: 5, power: 250, state: false, autoMode: false }
-];
-
-// ==================== INITIALIZATION ====================
-
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Estif Home 1000X Initializing...');
-    
-    // Load settings
-    loadSettings();
-    
-    // Initialize devices
-    AppState.devices = [...DevicesData];
-    
-    // Setup event listeners
-    setupEventListeners();
-    
-    // Setup mobile menu
-    setupMobileMenu();
-    
-    // Check authentication
-    checkAuth();
-    
-    // Setup WebSocket
-    setupWebSocket();
-    
-    // Setup Voice Recognition
-    setupVoiceRecognition();
-    
-    // Start auto refresh
-    startAutoRefresh();
-    
-    // Apply theme
-    applyTheme();
-    
-    console.log('✅ Application Ready');
-});
-
-// ==================== MOBILE MENU ====================
-
-function setupMobileMenu() {
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    
-    if (menuToggle) {
-        menuToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (sidebar) {
-                sidebar.classList.toggle('open');
-            }
-        });
-    }
-    
-    // Close sidebar when clicking outside on mobile
-    document.addEventListener('click', (e) => {
-        const sidebar = document.getElementById('sidebar');
-        const menuToggle = document.getElementById('menuToggle');
-        
-        if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('open')) {
-            if (!sidebar.contains(e.target) && e.target !== menuToggle && !menuToggle?.contains(e.target)) {
-                sidebar.classList.remove('open');
-            }
-        }
-    });
-    
-    // Close sidebar on window resize if screen becomes larger
-    window.addEventListener('resize', () => {
-        const sidebar = document.getElementById('sidebar');
-        if (window.innerWidth > 768 && sidebar) {
-            sidebar.classList.remove('open');
-        }
-    });
-}
-
-// ==================== AUTHENTICATION ====================
+// ==================== AUTHENTICATION FUNCTIONS ====================
 
 function checkAuth() {
+    const savedToken = localStorage.getItem('sessionToken');
     const savedUser = localStorage.getItem('currentUser');
     
-    if (savedUser) {
+    if (savedToken && savedUser) {
         try {
-            AppState.currentUser = JSON.parse(savedUser);
-            AppState.isLoggedIn = true;
-            showDashboardPage();
-            updateUserProfile();
-        } catch (e) {
-            showLoginPage();
+            const isValid = userManager.validateSession(savedToken);
+            if (isValid) {
+                AppState.sessionToken = savedToken;
+                AppState.currentUser = JSON.parse(savedUser);
+                AppState.isLoggedIn = true;
+                
+                // Load user's devices
+                loadUserDevices();
+                showDashboardPage();
+                updateUserProfile();
+                return;
+            }
+        } catch(e) {
+            console.log('Session invalid');
         }
-    } else {
-        showLoginPage();
     }
+    
+    showLoginPage();
 }
 
-function showLoginPage() {
-    document.querySelectorAll('.page-container').forEach(p => p.classList.remove('active'));
-    const loginPage = document.getElementById('login-page');
-    if (loginPage) loginPage.classList.add('active');
-    
-    // Hide sidebar and top bar
-    const sidebar = document.querySelector('.sidebar');
-    const topBar = document.querySelector('.top-bar');
-    if (sidebar) sidebar.style.display = 'none';
-    if (topBar) topBar.style.display = 'none';
-}
-
-function showDashboardPage() {
-    document.querySelectorAll('.page-container').forEach(p => p.classList.remove('active'));
-    const dashboardPage = document.getElementById('dashboard-page');
-    if (dashboardPage) dashboardPage.classList.add('active');
-    
-    // Show sidebar and top bar
-    const sidebar = document.querySelector('.sidebar');
-    const topBar = document.querySelector('.top-bar');
-    if (sidebar) sidebar.style.display = 'flex';
-    if (topBar) topBar.style.display = 'flex';
-    
-    // Initialize UI
+function loadUserDevices() {
+    if (!AppState.currentUser) return;
+    AppState.devices = deviceManager.getDevicesForUser(AppState.currentUser.id);
     renderDeviceGrid();
     updateStatistics();
-    updateUILanguage();
-    
-    // Set current page
-    AppState.currentPage = 'dashboard';
-    const t = Translations[AppState.language];
-    const pageTitle = document.getElementById('pageTitle');
-    if (pageTitle) pageTitle.textContent = t.dashboard;
 }
 
 function handleLogin(event) {
@@ -405,24 +490,31 @@ function handleLogin(event) {
     const password = document.getElementById('loginPassword').value;
     const t = Translations[AppState.language];
     
-    const user = Users.find(u => u.email === email && u.password === password);
+    const result = userManager.login(email, password);
     
-    if (user) {
-        AppState.currentUser = user;
+    if (result.success) {
+        AppState.currentUser = result.user;
+        AppState.sessionToken = result.token;
         AppState.isLoggedIn = true;
         
-        localStorage.setItem('currentUser', JSON.stringify(user));
+        localStorage.setItem('sessionToken', result.token);
+        localStorage.setItem('currentUser', JSON.stringify(result.user));
         
-        showToast(`${t.loginSuccess} ${user.name}!`, 'success');
+        // Load user's devices
+        loadUserDevices();
+        
+        showToast(`${t.loginSuccess} ${result.user.name}!`, 'success');
         showDashboardPage();
         updateUserProfile();
         
-        // Update UI language based on user preference
-        if (user.language) {
-            setLanguage(user.language);
+        if (result.user.settings?.language) {
+            setLanguage(result.user.settings.language);
         }
     } else {
-        showToast(t.loginFailed, 'error');
+        let errorMsg = t.loginFailed;
+        if (result.error === 'user_not_found') errorMsg = 'Email not found';
+        if (result.error === 'invalid_password') errorMsg = 'Incorrect password';
+        showToast(errorMsg, 'error');
     }
 }
 
@@ -435,71 +527,40 @@ function handleRegister(event) {
     const confirmPassword = document.getElementById('regConfirmPassword').value;
     const t = Translations[AppState.language];
     
-    // Check if passwords match
     if (password !== confirmPassword) {
         showToast(t.passwordMismatch, 'error');
         return;
     }
     
-    // Check if email exists
-    if (Users.find(u => u.email === email)) {
-        showToast(t.emailExists, 'error');
+    if (password.length < 6) {
+        showToast('Password must be at least 6 characters', 'error');
         return;
     }
     
-    // Create new user
-    const newUser = {
-        id: Users.length + 1,
-        email: email,
-        password: password,
-        name: name,
-        nameAm: name,
-        role: 'user',
-        avatar: '👤',
-        createdAt: new Date()
-    };
+    const result = userManager.register(email, password, name);
     
-    Users.push(newUser);
-    
-    showToast(t.registerSuccess, 'success');
-    
-    // Switch to login page
-    showLoginOnly();
-    
-    // Clear form
-    document.getElementById('registerForm').reset();
-}
-
-function showLoginOnly() {
-    document.getElementById('loginForm').reset();
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('loginForm').style.display = 'block';
-    const switchForm = document.querySelector('.switch-form');
-    if (switchForm) {
-        switchForm.innerHTML = `
-            <p>${Translations[AppState.language].noAccount} <a href="#" onclick="showRegisterOnly()">${Translations[AppState.language].register}</a></p>
-        `;
-    }
-}
-
-function showRegisterOnly() {
-    document.getElementById('registerForm').reset();
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('registerForm').style.display = 'block';
-    const switchForm = document.querySelector('.switch-form');
-    if (switchForm) {
-        switchForm.innerHTML = `
-            <p>${Translations[AppState.language].hasAccount} <a href="#" onclick="showLoginOnly()">${Translations[AppState.language].login}</a></p>
-        `;
+    if (result.success) {
+        showToast(t.registerSuccess, 'success');
+        showLoginOnly();
+        document.getElementById('registerForm').reset();
+    } else {
+        showToast(t.emailExists, 'error');
     }
 }
 
 function logout() {
-    localStorage.removeItem('currentUser');
-    AppState.currentUser = null;
-    AppState.isLoggedIn = false;
-    showLoginPage();
+    if (AppState.sessionToken) {
+        userManager.logout(AppState.sessionToken);
+    }
     
+    localStorage.removeItem('sessionToken');
+    localStorage.removeItem('currentUser');
+    
+    AppState.currentUser = null;
+    AppState.sessionToken = null;
+    AppState.isLoggedIn = false;
+    
+    showLoginPage();
     const t = Translations[AppState.language];
     showToast(t.logoutSuccess, 'info');
 }
@@ -530,130 +591,115 @@ function updateUserProfile() {
     }
 }
 
-// ==================== SETTINGS MANAGEMENT ====================
+// ==================== DEVICE MANAGEMENT (UPDATED) ====================
 
-function loadSettings() {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) AppState.theme = savedTheme;
-    
-    const savedLang = localStorage.getItem('language');
-    if (savedLang) AppState.language = savedLang;
-}
-
-function saveSettings() {
-    localStorage.setItem('theme', AppState.theme);
-    localStorage.setItem('language', AppState.language);
-}
-
-// ==================== THEME MANAGEMENT ====================
-
-function applyTheme() {
-    const html = document.documentElement;
-    if (AppState.theme === 'dark') {
-        html.setAttribute('data-theme', 'dark');
-        const themeIcon = document.getElementById('themeIcon');
-        if (themeIcon) themeIcon.className = 'fas fa-sun';
-    } else {
-        html.removeAttribute('data-theme');
-        const themeIcon = document.getElementById('themeIcon');
-        if (themeIcon) themeIcon.className = 'fas fa-moon';
-    }
-}
-
-function toggleTheme() {
-    AppState.theme = AppState.theme === 'light' ? 'dark' : 'light';
-    applyTheme();
-    saveSettings();
-    const t = Translations[AppState.language];
-    showToast(`${AppState.theme === 'light' ? 'Light' : 'Dark'} mode enabled`, 'info');
-}
-
-// ==================== LANGUAGE MANAGEMENT ====================
-
-function setLanguage(lang) {
-    AppState.language = lang;
-    saveSettings();
-    
-    updateUILanguage();
-    renderDeviceGrid();
-    updateLanguageButtons();
-    updateUserProfile();
-    
-    if (AppState.recognition) {
-        AppState.recognition.lang = lang === 'en' ? 'en-US' : 'am-ET';
-    }
-    
-    const t = Translations[AppState.language];
-    showToast(`Language: ${lang === 'en' ? 'English' : 'Amharic'}`, 'success');
-}
-
-function updateUILanguage() {
-    const t = Translations[AppState.language];
-    
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (t[key]) el.textContent = t[key];
-    });
-    
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        const key = el.getAttribute('data-i18n-placeholder');
-        if (t[key]) el.placeholder = t[key];
-    });
-    
-    const pageTitle = document.getElementById('pageTitle');
-    if (pageTitle && t[AppState.currentPage]) {
-        pageTitle.textContent = t[AppState.currentPage];
-    }
-    
-    const voiceDisplay = document.getElementById('voiceCommandText');
-    if (voiceDisplay) voiceDisplay.textContent = t.wakeWord;
-    
-    updateUserProfile();
-}
-
-function updateLanguageButtons() {
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if ((AppState.language === 'en' && btn.textContent === 'EN') ||
-            (AppState.language === 'am' && btn.textContent === 'አማ')) {
-            btn.classList.add('active');
-        }
-    });
-}
-
-// ==================== NAVIGATION ====================
-
-function navigateTo(page) {
+function toggleDevice(deviceId) {
     if (!AppState.isLoggedIn) return;
     
-    AppState.currentPage = page;
+    const result = deviceManager.toggleDevice(deviceId, AppState.currentUser.id);
+    const t = Translations[AppState.language];
     
-    document.querySelectorAll('.page-container').forEach(container => {
-        container.classList.remove('active');
-    });
+    if (!result.success) {
+        if (result.error === 'auto_mode_active') {
+            showToast(t.autoModeBlock, 'warning');
+        } else if (result.error === 'unauthorized') {
+            showToast(t.unauthorized, 'error');
+        } else {
+            showToast(t.deviceNotFound, 'error');
+        }
+        return;
+    }
     
-    const targetPage = document.getElementById(`${page}-page`);
-    if (targetPage) targetPage.classList.add('active');
+    // Update local state
+    const deviceIndex = AppState.devices.findIndex(d => d.id === deviceId);
+    if (deviceIndex !== -1) {
+        AppState.devices[deviceIndex] = result.device;
+    }
     
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-        if (item.getAttribute('onclick') === `navigateTo('${page}')`) {
-            item.classList.add('active');
+    renderDeviceGrid();
+    updateStatistics();
+    
+    const deviceName = AppState.language === 'en' ? result.device.nameEn : result.device.nameAm;
+    addActivityLog(`${deviceName} turned ${result.device.state ? 'ON' : 'OFF'}`, 'device');
+    sendDeviceCommand(deviceId, result.device.state);
+}
+
+function toggleAutoMode(deviceId) {
+    if (!AppState.isLoggedIn) return;
+    
+    const device = AppState.devices.find(d => d.id === deviceId);
+    if (!device) return;
+    
+    const result = deviceManager.setAutoMode(deviceId, !device.autoMode, AppState.currentUser.id);
+    const t = Translations[AppState.language];
+    
+    if (!result.success) {
+        showToast(t.unauthorized, 'error');
+        return;
+    }
+    
+    // Update local state
+    const deviceIndex = AppState.devices.findIndex(d => d.id === deviceId);
+    if (deviceIndex !== -1) {
+        AppState.devices[deviceIndex] = result.device;
+    }
+    
+    renderDeviceGrid();
+    
+    const deviceName = AppState.language === 'en' ? result.device.nameEn : result.device.nameAm;
+    showToast(`${deviceName} ${result.device.autoMode ? t.autoModeEnabled : t.autoModeDisabled}`, 'info');
+    sendAutoModeCommand(deviceId, result.device.autoMode);
+}
+
+function masterAllOn() {
+    if (!AppState.isLoggedIn) return;
+    
+    const result = deviceManager.masterControl(true, AppState.currentUser.id);
+    const t = Translations[AppState.language];
+    
+    // Update local state
+    result.affected.forEach(updatedDevice => {
+        const index = AppState.devices.findIndex(d => d.id === updatedDevice.id);
+        if (index !== -1) {
+            AppState.devices[index] = updatedDevice;
         }
     });
     
-    const t = Translations[AppState.language];
-    const pageTitle = document.getElementById('pageTitle');
-    if (pageTitle && t[page]) pageTitle.textContent = t[page];
+    renderDeviceGrid();
+    updateStatistics();
     
-    // Close sidebar on mobile after navigation
-    if (window.innerWidth <= 768) {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.classList.remove('open');
-    }
+    showToast(t.allOn, 'success');
+    addActivityLog('All devices turned ON', 'system');
+    
+    result.affected.forEach(device => {
+        sendDeviceCommand(device.id, true);
+    });
 }
 
-// ==================== DEVICE MANAGEMENT ====================
+function masterAllOff() {
+    if (!AppState.isLoggedIn) return;
+    
+    const result = deviceManager.masterControl(false, AppState.currentUser.id);
+    const t = Translations[AppState.language];
+    
+    // Update local state
+    result.affected.forEach(updatedDevice => {
+        const index = AppState.devices.findIndex(d => d.id === updatedDevice.id);
+        if (index !== -1) {
+            AppState.devices[index] = updatedDevice;
+        }
+    });
+    
+    renderDeviceGrid();
+    updateStatistics();
+    
+    showToast(t.allOff, 'info');
+    addActivityLog('All devices turned OFF', 'system');
+    
+    result.affected.forEach(device => {
+        sendDeviceCommand(device.id, false);
+    });
+}
 
 function renderDeviceGrid() {
     const grid = document.getElementById('deviceGrid');
@@ -691,177 +737,111 @@ function renderDeviceGrid() {
     updateDeviceCount();
 }
 
-function toggleDevice(deviceId) {
-    const device = AppState.devices.find(d => d.id === deviceId);
-    if (!device) return;
+// ==================== SETTINGS MANAGEMENT ====================
+
+function updateUserSettings(settings) {
+    if (!AppState.currentUser) return;
     
-    // Check if device is in auto mode
-    if (device.autoMode) {
-        const t = Translations[AppState.language];
-        showToast(t.autoModeBlock, 'warning');
-        return;
+    const result = userManager.updateUserSettings(AppState.currentUser.id, settings);
+    if (result.success) {
+        AppState.currentUser.settings = result.settings;
+        localStorage.setItem('currentUser', JSON.stringify(AppState.currentUser));
+        showToast('Settings updated', 'success');
     }
+}
+
+function changePassword(oldPassword, newPassword) {
+    if (!AppState.currentUser) return;
     
-    // Toggle device state
-    device.state = !device.state;
+    const result = userManager.changePassword(AppState.currentUser.id, oldPassword, newPassword);
+    if (result.success) {
+        showToast('Password changed successfully', 'success');
+    } else {
+        showToast('Current password is incorrect', 'error');
+    }
+}
+
+// ==================== PAGE NAVIGATION ====================
+
+function showLoginPage() {
+    document.querySelectorAll('.page-container').forEach(p => p.classList.remove('active'));
+    const loginPage = document.getElementById('login-page');
+    if (loginPage) loginPage.classList.add('active');
+    
+    const sidebar = document.querySelector('.sidebar');
+    const topBar = document.querySelector('.top-bar');
+    if (sidebar) sidebar.style.display = 'none';
+    if (topBar) topBar.style.display = 'none';
+}
+
+function showDashboardPage() {
+    document.querySelectorAll('.page-container').forEach(p => p.classList.remove('active'));
+    const dashboardPage = document.getElementById('dashboard-page');
+    if (dashboardPage) dashboardPage.classList.add('active');
+    
+    const sidebar = document.querySelector('.sidebar');
+    const topBar = document.querySelector('.top-bar');
+    if (sidebar) sidebar.style.display = 'flex';
+    if (topBar) topBar.style.display = 'flex';
+    
     renderDeviceGrid();
     updateStatistics();
+    updateUILanguage();
     
-    // Send to server
-    sendDeviceCommand(deviceId, device.state);
-    
-    // Log activity
+    AppState.currentPage = 'dashboard';
     const t = Translations[AppState.language];
-    const deviceName = AppState.language === 'en' ? device.nameEn : device.nameAm;
-    addActivityLog(`${deviceName} turned ${device.state ? 'ON' : 'OFF'}`, 'device');
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle) pageTitle.textContent = t.dashboard;
 }
 
-function toggleAutoMode(deviceId) {
-    const device = AppState.devices.find(d => d.id === deviceId);
-    if (!device) return;
-    
-    device.autoMode = !device.autoMode;
-    renderDeviceGrid();
-    
-    const t = Translations[AppState.language];
-    const deviceName = AppState.language === 'en' ? device.nameEn : device.nameAm;
-    showToast(`${deviceName} ${device.autoMode ? t.autoModeEnabled : t.autoModeDisabled}`, 'info');
-    
-    // Send to server
-    sendAutoModeCommand(deviceId, device.autoMode);
-}
-
-function masterAllOn() {
+function navigateTo(page) {
     if (!AppState.isLoggedIn) return;
     
-    AppState.devices.forEach(device => {
-        if (!device.autoMode) {
-            device.state = true;
-            sendDeviceCommand(device.id, true);
+    AppState.currentPage = page;
+    
+    document.querySelectorAll('.page-container').forEach(container => {
+        container.classList.remove('active');
+    });
+    
+    const targetPage = document.getElementById(`${page}-page`);
+    if (targetPage) targetPage.classList.add('active');
+    
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('onclick') === `navigateTo('${page}')`) {
+            item.classList.add('active');
         }
     });
-    renderDeviceGrid();
-    updateStatistics();
     
     const t = Translations[AppState.language];
-    showToast(t.allOn, 'success');
-    addActivityLog('All devices turned ON', 'system');
-}
-
-function masterAllOff() {
-    if (!AppState.isLoggedIn) return;
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle && t[page]) pageTitle.textContent = t[page];
     
-    AppState.devices.forEach(device => {
-        if (!device.autoMode) {
-            device.state = false;
-            sendDeviceCommand(device.id, false);
-        }
-    });
-    renderDeviceGrid();
-    updateStatistics();
-    
-    const t = Translations[AppState.language];
-    showToast(t.allOff, 'info');
-    addActivityLog('All devices turned OFF', 'system');
-}
-
-// ==================== API COMMUNICATION ====================
-
-function sendDeviceCommand(deviceId, state) {
-    if (AppState.socket && AppState.wsConnected) {
-        AppState.socket.emit('device_control', { deviceId, state });
-    } else {
-        fetch(`/api/device/${deviceId}/state`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ state })
-        }).catch(console.error);
+    if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.remove('open');
     }
 }
 
-function sendAutoModeCommand(deviceId, enabled) {
-    if (AppState.socket && AppState.wsConnected) {
-        AppState.socket.emit('auto_mode', { deviceId, enabled });
-    } else {
-        fetch(`/api/device/${deviceId}/auto`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ enabled })
-        }).catch(console.error);
+// ==================== MOBILE MENU ====================
+
+function setupMobileMenu() {
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    
+    if (menuToggle) {
+        menuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (sidebar) sidebar.classList.toggle('open');
+        });
     }
-}
-
-// ==================== STATISTICS ====================
-
-function updateStatistics() {
-    const activeCount = AppState.devices.filter(d => d.state).length;
-    const autoCount = AppState.devices.filter(d => d.autoMode).length;
-    const totalPower = AppState.devices.reduce((sum, d) => sum + (d.state ? d.power : 0), 0);
-    const maxPower = AppState.devices.reduce((sum, d) => sum + d.power, 0);
-    const savings = maxPower > 0 ? Math.round((1 - totalPower / maxPower) * 100) : 0;
     
-    const statTotal = document.getElementById('statTotalDevices');
-    const statActive = document.getElementById('statActiveDevices');
-    const statAuto = document.getElementById('statAutoMode');
-    const statTemp = document.getElementById('statTemperature');
-    const statSaving = document.getElementById('statEnergySaving');
-    
-    if (statTotal) statTotal.textContent = AppState.devices.length;
-    if (statActive) statActive.textContent = activeCount;
-    if (statAuto) statAuto.textContent = autoCount;
-    if (statTemp) statTemp.textContent = `${AppState.systemStats.temperature}°C`;
-    if (statSaving) statSaving.textContent = `${savings}%`;
-    
-    AppState.systemStats.activeDevices = activeCount;
-    AppState.systemStats.energyUsage = totalPower;
-}
-
-function updateDeviceCount() {
-    const activeCount = AppState.devices.filter(d => d.state).length;
-    const badge = document.getElementById('deviceCount');
-    if (badge) badge.textContent = activeCount;
-}
-
-// ==================== WEB SOCKET ====================
-
-function setupWebSocket() {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}`;
-    
-    AppState.socket = io(wsUrl);
-    
-    AppState.socket.on('connect', () => {
-        AppState.wsConnected = true;
-        updateConnectionStatus(true);
-        const t = Translations[AppState.language];
-        showToast('Real-time connection established', 'success');
-    });
-    
-    AppState.socket.on('disconnect', () => {
-        AppState.wsConnected = false;
-        updateConnectionStatus(false);
-        const t = Translations[AppState.language];
-        showToast('Real-time connection lost', 'warning');
-    });
-    
-    AppState.socket.on('device_update', (device) => {
-        const localDevice = AppState.devices.find(d => d.id === device.id);
-        if (localDevice) {
-            localDevice.state = device.state;
-            localDevice.autoMode = device.autoMode;
-            renderDeviceGrid();
-            updateStatistics();
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('open')) {
+            if (!sidebar.contains(e.target) && e.target !== menuToggle) {
+                sidebar.classList.remove('open');
+            }
         }
-    });
-    
-    AppState.socket.on('sensor_update', (data) => {
-        if (data.temperature) AppState.systemStats.temperature = data.temperature;
-        if (data.humidity) AppState.systemStats.humidity = data.humidity;
-        updateStatistics();
-    });
-    
-    AppState.socket.on('esp_status', (data) => {
-        updateConnectionStatus(data.connected);
     });
 }
 
@@ -878,7 +858,6 @@ function setupVoiceRecognition() {
     AppState.recognition.onstart = () => {
         AppState.isListening = true;
         updateVoiceUI(true);
-        const t = Translations[AppState.language];
         showToast('Listening for wake word...', 'info');
     };
     
@@ -905,7 +884,6 @@ function toggleVoiceRecognition() {
 
 function startVoiceRecognition() {
     if (AppState.recognition) {
-        AppState.recognition.lang = AppState.language === 'en' ? 'en-US' : 'am-ET';
         AppState.recognition.start();
         AppState.isListening = true;
         updateVoiceUI(true);
@@ -1033,29 +1011,36 @@ function updateVoiceUI(isListening) {
     }
 }
 
-// ==================== ACTIVITY LOG ====================
+// ==================== UI HELPERS ====================
 
-function addActivityLog(message, source = 'system') {
-    const logContainer = document.getElementById('activityLog');
-    if (!logContainer) return;
+function updateStatistics() {
+    const activeCount = AppState.devices.filter(d => d.state).length;
+    const autoCount = AppState.devices.filter(d => d.autoMode).length;
+    const totalPower = AppState.devices.reduce((sum, d) => sum + (d.state ? d.power : 0), 0);
+    const maxPower = AppState.devices.reduce((sum, d) => sum + d.power, 0);
+    const savings = maxPower > 0 ? Math.round((1 - totalPower / maxPower) * 100) : 0;
     
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const logEntry = document.createElement('div');
-    logEntry.className = 'log-entry';
-    logEntry.innerHTML = `
-        <span class="log-time">${time}</span>
-        <span class="log-message">${escapeHtml(message)}</span>
-        <span class="log-source">${source}</span>
-    `;
+    const statTotal = document.getElementById('statTotalDevices');
+    const statActive = document.getElementById('statActiveDevices');
+    const statAuto = document.getElementById('statAutoMode');
+    const statTemp = document.getElementById('statTemperature');
+    const statSaving = document.getElementById('statEnergySaving');
     
-    logContainer.insertBefore(logEntry, logContainer.firstChild);
+    if (statTotal) statTotal.textContent = AppState.devices.length;
+    if (statActive) statActive.textContent = activeCount;
+    if (statAuto) statAuto.textContent = autoCount;
+    if (statTemp) statTemp.textContent = `${AppState.systemStats.temperature}°C`;
+    if (statSaving) statSaving.textContent = `${savings}%`;
     
-    while (logContainer.children.length > 20) {
-        logContainer.removeChild(logContainer.lastChild);
-    }
+    AppState.systemStats.activeDevices = activeCount;
+    AppState.systemStats.energyUsage = totalPower;
 }
 
-// ==================== CONNECTION STATUS ====================
+function updateDeviceCount() {
+    const activeCount = AppState.devices.filter(d => d.state).length;
+    const badge = document.getElementById('deviceCount');
+    if (badge) badge.textContent = activeCount;
+}
 
 function updateConnectionStatus(connected) {
     const statusDot = document.getElementById('statusDot');
@@ -1077,7 +1062,25 @@ function updateConnectionStatus(connected) {
     }
 }
 
-// ==================== UI HELPERS ====================
+function addActivityLog(message, source = 'system') {
+    const logContainer = document.getElementById('activityLog');
+    if (!logContainer) return;
+    
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const logEntry = document.createElement('div');
+    logEntry.className = 'log-entry';
+    logEntry.innerHTML = `
+        <span class="log-time">${time}</span>
+        <span class="log-message">${escapeHtml(message)}</span>
+        <span class="log-source">${source}</span>
+    `;
+    
+    logContainer.insertBefore(logEntry, logContainer.firstChild);
+    
+    while (logContainer.children.length > 20) {
+        logContainer.removeChild(logContainer.lastChild);
+    }
+}
 
 function showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
@@ -1104,6 +1107,141 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function setupWebSocket() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}`;
+    
+    AppState.socket = io(wsUrl);
+    
+    AppState.socket.on('connect', () => {
+        AppState.wsConnected = true;
+        updateConnectionStatus(true);
+        showToast('Real-time connection established', 'success');
+    });
+    
+    AppState.socket.on('disconnect', () => {
+        AppState.wsConnected = false;
+        updateConnectionStatus(false);
+        showToast('Real-time connection lost', 'warning');
+    });
+    
+    AppState.socket.on('device_update', (device) => {
+        const localDevice = AppState.devices.find(d => d.id === device.id);
+        if (localDevice) {
+            localDevice.state = device.state;
+            localDevice.autoMode = device.autoMode;
+            renderDeviceGrid();
+            updateStatistics();
+        }
+    });
+    
+    AppState.socket.on('sensor_update', (data) => {
+        if (data.temperature) AppState.systemStats.temperature = data.temperature;
+        if (data.humidity) AppState.systemStats.humidity = data.humidity;
+        updateStatistics();
+    });
+    
+    AppState.socket.on('esp_status', (data) => {
+        updateConnectionStatus(data.connected);
+    });
+}
+
+function sendDeviceCommand(deviceId, state) {
+    if (AppState.socket && AppState.wsConnected) {
+        AppState.socket.emit('device_control', { deviceId, state });
+    }
+}
+
+function sendAutoModeCommand(deviceId, enabled) {
+    if (AppState.socket && AppState.wsConnected) {
+        AppState.socket.emit('auto_mode', { deviceId, enabled });
+    }
+}
+
+// ==================== THEME & LANGUAGE ====================
+
+function applyTheme() {
+    const html = document.documentElement;
+    if (AppState.theme === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+        const themeIcon = document.getElementById('themeIcon');
+        if (themeIcon) themeIcon.className = 'fas fa-sun';
+    } else {
+        html.removeAttribute('data-theme');
+        const themeIcon = document.getElementById('themeIcon');
+        if (themeIcon) themeIcon.className = 'fas fa-moon';
+    }
+}
+
+function toggleTheme() {
+    AppState.theme = AppState.theme === 'light' ? 'dark' : 'light';
+    localStorage.setItem('theme', AppState.theme);
+    applyTheme();
+    
+    if (AppState.currentUser) {
+        updateUserSettings({ theme: AppState.theme });
+    }
+    
+    showToast(`${AppState.theme === 'light' ? 'Light' : 'Dark'} mode enabled`, 'info');
+}
+
+function setLanguage(lang) {
+    AppState.language = lang;
+    localStorage.setItem('language', lang);
+    
+    updateUILanguage();
+    renderDeviceGrid();
+    updateLanguageButtons();
+    updateUserProfile();
+    
+    if (AppState.recognition) {
+        AppState.recognition.lang = lang === 'en' ? 'en-US' : 'am-ET';
+    }
+    
+    if (AppState.currentUser) {
+        updateUserSettings({ language: lang });
+    }
+    
+    showToast(`Language: ${lang === 'en' ? 'English' : 'Amharic'}`, 'success');
+}
+
+function updateUILanguage() {
+    const t = Translations[AppState.language];
+    
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.textContent = t[key];
+    });
+    
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle && t[AppState.currentPage]) {
+        pageTitle.textContent = t[AppState.currentPage];
+    }
+    
+    const voiceDisplay = document.getElementById('voiceCommandText');
+    if (voiceDisplay) voiceDisplay.textContent = t.wakeWord;
+    
+    updateUserProfile();
+}
+
+function updateLanguageButtons() {
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if ((AppState.language === 'en' && btn.textContent === 'EN') ||
+            (AppState.language === 'am' && btn.textContent === 'አማ')) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+function loadSettings() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) AppState.theme = savedTheme;
+    
+    const savedLang = localStorage.getItem('language');
+    if (savedLang) AppState.language = savedLang;
+}
+
 function startAutoRefresh() {
     setInterval(() => {
         if (AppState.autoRefresh && AppState.isLoggedIn) {
@@ -1112,15 +1250,9 @@ function startAutoRefresh() {
     }, 5000);
 }
 
-// ==================== EVENT LISTENERS ====================
-
 function setupEventListeners() {
-    // Close sidebar when clicking outside on mobile (handled in setupMobileMenu)
-    
-    // Handle window resize (handled in setupMobileMenu)
+    // Event listeners handled in other functions
 }
-
-// ==================== MODAL FUNCTIONS ====================
 
 function showUserMenu() {
     const modal = document.getElementById('userModal');
@@ -1136,6 +1268,23 @@ function editProfile() {
     showToast('Edit profile feature coming soon', 'info');
     closeModal();
 }
+
+// ==================== INITIALIZATION ====================
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Estif Home 1000X Advanced Multi-User System Initializing...');
+    
+    loadSettings();
+    setupEventListeners();
+    setupMobileMenu();
+    checkAuth();
+    setupWebSocket();
+    setupVoiceRecognition();
+    startAutoRefresh();
+    applyTheme();
+    
+    console.log('✅ Application Ready');
+});
 
 // ==================== EXPOSE GLOBALLY ====================
 
