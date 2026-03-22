@@ -1284,18 +1284,48 @@ select {
         grid-template-columns: repeat(2, 1fr);
     }
 }
-
 /* Mobile (375px - 768px) */
 @media (max-width: 768px) {
+    :root {
+        --sidebar-width: 280px;
+        --border-radius: 16px;
+    }
+    
+    .sidebar {
+        transform: translateX(-100%);
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .menu-toggle-btn {
+        display: block;
+    }
+    
+    .top-bar {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .page-title {
+        font-size: 1.1rem;
+    }
+    
+    .page-container {
+        padding: var(--spacing-md);
+    }
+    
+    /* Stats Grid - 2 columns on mobile */
     .stats-grid {
-        display: grid;
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 12px;
     }
-    .device-grid,
-    .all-devices-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    
     .stat-card {
         padding: 12px;
     }
@@ -1312,6 +1342,195 @@ select {
     
     .stat-label {
         font-size: 0.65rem;
+    }
+    
+    /* ==================== ALL DEVICE GRIDS - DUAL COLUMNS ==================== */
+    /* Main Dashboard Device Grid */
+    .device-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px;
+    }
+    
+    /* All Devices Page Grid */
+    .all-devices-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px;
+    }
+    
+    /* Device Card Styling */
+    .device-card {
+        padding: 12px;
+    }
+    
+    .device-icon {
+        font-size: 1.8rem;
+    }
+    
+    .device-name {
+        font-size: 0.8rem;
+    }
+    
+    .device-room {
+        font-size: 0.65rem;
+    }
+    
+    .device-state {
+        font-size: 0.65rem;
+        padding: 3px 8px;
+    }
+    
+    .device-power {
+        font-size: 0.6rem;
+    }
+    
+    .auto-badge {
+        font-size: 0.55rem;
+        padding: 2px 6px;
+        top: 5px;
+        right: 5px;
+    }
+    
+    .auto-toggle {
+        padding: 3px 6px;
+        font-size: 0.55rem;
+        bottom: 5px;
+        right: 5px;
+    }
+    
+    /* Control Buttons */
+    .control-buttons {
+        gap: 12px;
+    }
+    
+    .control-btn {
+        padding: 10px;
+        font-size: 0.8rem;
+    }
+    
+    /* Voice Card */
+    .voice-card {
+        padding: 16px;
+        margin: 16px 0;
+    }
+    
+    .voice-display {
+        padding: 10px;
+        font-size: 0.75rem;
+    }
+    
+    .voice-wave {
+        height: 35px;
+    }
+    
+    .wave-bar {
+        width: 3px;
+    }
+    
+    /* Emergency Card */
+    .emergency-card {
+        padding: 12px;
+        margin: 16px 0;
+    }
+    
+    .emergency-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .emergency-icon i:first-child {
+        font-size: 1.3rem;
+    }
+    
+    .emergency-info h3 {
+        font-size: 0.85rem;
+    }
+    
+    .emergency-info p {
+        font-size: 0.65rem;
+    }
+    
+    .emergency-number {
+        font-size: 0.85rem;
+    }
+    
+    .emergency-arrow {
+        width: 28px;
+        height: 28px;
+    }
+    
+    /* Activity Log */
+    .activity-log {
+        padding: 10px;
+    }
+    
+    .log-entry {
+        font-size: 0.7rem;
+        padding: 6px 0;
+        gap: 8px;
+    }
+    
+    .log-time {
+        min-width: 50px;
+        font-size: 0.65rem;
+    }
+    
+    /* Welcome Card */
+    .welcome-card {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .welcome-card h2 {
+        font-size: 1rem;
+    }
+    
+    .welcome-card p {
+        font-size: 0.7rem;
+    }
+    
+    /* Login Card */
+    .login-card {
+        padding: 30px 20px;
+    }
+    
+    /* Charts */
+    .chart-container {
+        height: 180px;
+    }
+    
+    .chart-card {
+        padding: 12px;
+    }
+    
+    .chart-card h3 {
+        font-size: 0.85rem;
+    }
+    
+    /* Settings */
+    .setting-item {
+        padding: 12px;
+    }
+    
+    .setting-label {
+        font-size: 0.8rem;
+    }
+    
+    .setting-desc {
+        font-size: 0.65rem;
+    }
+    
+    /* Toast */
+    .toast-container {
+        bottom: 12px;
+        left: 12px;
+        right: 12px;
+        transform: none;
+        width: auto;
+    }
+    
+    .toast {
+        padding: 10px 14px;
+        font-size: 0.75rem;
     }
 }
 /* Small Mobile (320px - 374px) */
