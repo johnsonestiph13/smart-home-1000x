@@ -365,6 +365,7 @@ const deviceManager = new DeviceManager();
 // ==================== TRANSLATIONS (Same as before) ====================
 const Translations = {
     en: {
+        
         login: "Login",
         register: "Register",
         email: "Email",
@@ -445,8 +446,11 @@ const Translations = {
         admin: "አስተዳዳሪ",
         user: "ተጠቃሚ",
         guest: "እንግዳ"
+        
     }
+    
 };
+
 
 // ==================== AUTHENTICATION FUNCTIONS ====================
 
@@ -1272,6 +1276,34 @@ function showToast(message, type = 'info') {
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
+// ==================== EMERGENCY CONTACT ====================
+
+function makeEmergencyCall() {
+    // Emergency contact number - change this to your actual emergency number
+    const emergencyNumber = '+251987713787';
+    
+    // Show confirmation dialog
+    const t = Translations[AppState.language];
+    const confirmMessage = t.emergencyConfirm || 'Call emergency contact?';
+    const cancelMessage = t.cancel || 'Cancel';
+    
+    // Create custom confirmation (or use browser confirm)
+    if (confirm(confirmMessage + ' ' + emergencyNumber)) {
+        // For mobile devices - opens phone dialer
+        window.location.href = `tel:${emergencyNumber}`;
+        
+        // Log activity
+        addActivityLog('Emergency contact clicked - calling ' + emergencyNumber, 'emergency');
+        
+        // Show toast
+        showToast('Calling emergency contact...', 'warning');
+    }
+}
+
+// Add to translations
+// Add to Translations object:
+Translations.en.emergencyConfirm = 'Call emergency contact?';
+Translations.am.emergencyConfirm = 'አደጋ ጊዜ ማነጋገሪያ መደወል?';
 
 function escapeHtml(text) {
     const div = document.createElement('div');

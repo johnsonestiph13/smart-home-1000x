@@ -1477,3 +1477,119 @@ select {
     background: var(--primary);
     color: white;
 }
+/* ==================== EMERGENCY CONTACT CARD ==================== */
+.emergency-card {
+    background: linear-gradient(135deg, #ef476f, #d9042b);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin: var(--spacing-lg) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    cursor: pointer;
+    transition: var(--transition);
+    color: white;
+    position: relative;
+    overflow: hidden;
+    animation: pulse-emergency 2s infinite;
+}
+
+.emergency-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.emergency-card:hover::before {
+    left: 100%;
+}
+
+.emergency-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(239, 71, 111, 0.4);
+}
+
+.emergency-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.emergency-icon i:first-child {
+    font-size: 1.8rem;
+    position: absolute;
+    animation: ring 1s infinite;
+}
+
+.emergency-icon i:last-child {
+    font-size: 1rem;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: white;
+    color: #ef476f;
+    border-radius: 50%;
+    padding: 3px;
+}
+
+.emergency-info {
+    flex: 1;
+}
+
+.emergency-info h3 {
+    font-size: 1rem;
+    margin-bottom: 4px;
+    color: white;
+}
+
+.emergency-info p {
+    font-size: 0.7rem;
+    opacity: 0.9;
+    margin-bottom: 5px;
+}
+
+.emergency-number {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-family: monospace;
+}
+
+.emergency-arrow {
+    width: 35px;
+    height: 35px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.emergency-card:hover .emergency-arrow {
+    transform: translateX(5px);
+    background: rgba(255,255,255,0.3);
+}
+
+@keyframes ring {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(15deg); }
+    75% { transform: rotate(-15deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes pulse-emergency {
+    0% { box-shadow: 0 0 0 0 rgba(239, 71, 111, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(239, 71, 111, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 71, 111, 0); }
+}
