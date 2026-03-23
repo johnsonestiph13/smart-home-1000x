@@ -2,10 +2,10 @@
   "name": "estif-home-1000x",
   "version": "1.0.0",
   "description": "Enterprise Smart Home Control System - Complete IoT Solution with AI, Automation, and Real-time Control",
-  "main": "server.js",
+  "main": "server/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -17,7 +17,7 @@
     "monitor": "node scripts/monitor.js",
     "seed": "node database/seeds/seed.js",
     "migrate": "node database/migrate.js",
-    "pm2:start": "pm2 start server.js --name estif-home",
+    "pm2:start": "pm2 start server/server.js --name estif-home",
     "pm2:stop": "pm2 stop estif-home",
     "pm2:restart": "pm2 restart estif-home",
     "pm2:logs": "pm2 logs estif-home"
@@ -88,10 +88,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/johnsonestif12/estif-home-1000x.git"
+    "url": "https://github.com/johnsonestiph13/smart-home-1000x.git"
   },
   "bugs": {
-    "url": "https://github.com/johnsonestif12/estif-home-1000x/issues"
+    "url": "https://github.com/johnsonestiph13/smart-home-1000x/issues"
   },
-  "homepage": "https://github.com/johnsonestif12/estif-home-1000x#readme"
+  "homepage": "https://github.com/johnsonestiph13/smart-home-1000x#readme"
 }
