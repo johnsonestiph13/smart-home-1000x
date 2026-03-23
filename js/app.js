@@ -9,6 +9,7 @@
  * - Role-Based Access Control
  * - Cloud Sync Ready
  * - Enhanced Security
+ * - Auto-start Voice Recognition
  */
 
 // ==================== USER DATABASE ====================
@@ -40,7 +41,7 @@ class UserManager {
             {
                 id: 1,
                 email: 'johnsonestiph13@gmail.com',
-                password: this.hashPassword(''),
+                password: this.hashPassword('Jon@2127'),
                 name: 'Estiph Johnson',
                 nameAm: 'እስቲፍ ጆንሰን',
                 role: 'admin',
@@ -362,10 +363,9 @@ const AppState = {
 const userManager = new UserManager();
 const deviceManager = new DeviceManager();
 
-// ==================== TRANSLATIONS (Same as before) ====================
+// ==================== TRANSLATIONS ====================
 const Translations = {
     en: {
-        
         login: "Login",
         register: "Register",
         email: "Email",
@@ -404,7 +404,10 @@ const Translations = {
         unauthorized: "You don't have permission for this action",
         admin: "Administrator",
         user: "User",
-        guest: "Guest"
+        guest: "Guest",
+        emergencyConfirm: "Call emergency contact?",
+        cancel: "Cancel",
+        listening: "Listening for wake word..."
     },
     am: {
         login: "ግባ",
@@ -445,12 +448,68 @@ const Translations = {
         unauthorized: "ለዚህ ተግባር ፈቃድ የለህም",
         admin: "አስተዳዳሪ",
         user: "ተጠቃሚ",
-        guest: "እንግዳ"
-        
+        guest: "እንግዳ",
+        emergencyConfirm: "አደጋ ጊዜ ማነጋገሪያ መደወል?",
+        cancel: "አይ",
+        listening: "ለንቃት ቃል እየጠበቅኩ ነው..."
     }
-    
 };
 
+// ==================== REGISTRATION FUNCTIONS ====================
+
+function showRegisterOnly() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'block';
+    const switchForm = document.querySelector('.switch-form');
+    if (switchForm) {
+        switchForm.innerHTML = `<p>Already have an account? <a href="#" onclick="showLoginOnly()">Login</a></p>`;
+    }
+}
+
+function showLoginOnly() {
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'block';
+    const switchForm = document.querySelector('.switch-form');
+    if (switchForm) {
+        switchForm.innerHTML = `<p>Don't have an account? <a href="#" onclick="showRegisterOnly()">Register</a></p>`;
+    }
+}
+
+function handleRegister(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById('regName').value;
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    const confirm = document.getElementById('regConfirmPassword').value;
+    const t = Translations[AppState.language];
+    
+    if (password !== confirm) {
+        showToast(t.passwordMismatch, 'error');
+        return;
+    }
+    if (password.length < 6) {
+        showToast('Password must be at least 6 characters', 'error');
+        return;
+    }
+    
+    // Check if email already exists in Users array
+    if (userManager.users.find(u => u.email === email)) {
+        showToast(t.emailExists, 'error');
+        return;
+    }
+    
+    // Create new user (store in localStorage)
+    const result = userManager.register(email, password, name);
+    
+    if (result.success) {
+        showToast(t.registerSuccess, 'success');
+        showLoginOnly();
+        document.getElementById('registerForm').reset();
+    } else {
+        showToast(t.emailExists, 'error');
+    }
+}
 
 // ==================== AUTHENTICATION FUNCTIONS ====================
 
@@ -522,36 +581,6 @@ function handleLogin(event) {
     }
 }
 
-function handleRegister(event) {
-    event.preventDefault();
-    
-    const name = document.getElementById('regName').value;
-    const email = document.getElementById('regEmail').value;
-    const password = document.getElementById('regPassword').value;
-    const confirmPassword = document.getElementById('regConfirmPassword').value;
-    const t = Translations[AppState.language];
-    
-    if (password !== confirmPassword) {
-        showToast(t.passwordMismatch, 'error');
-        return;
-    }
-    
-    if (password.length < 6) {
-        showToast('Password must be at least 6 characters', 'error');
-        return;
-    }
-    
-    const result = userManager.register(email, password, name);
-    
-    if (result.success) {
-        showToast(t.registerSuccess, 'success');
-        showLoginOnly();
-        document.getElementById('registerForm').reset();
-    } else {
-        showToast(t.emailExists, 'error');
-    }
-}
-
 function logout() {
     if (AppState.sessionToken) {
         userManager.logout(AppState.sessionToken);
@@ -595,7 +624,7 @@ function updateUserProfile() {
     }
 }
 
-// ==================== DEVICE MANAGEMENT (UPDATED) ====================
+// ==================== DEVICE MANAGEMENT ====================
 
 function toggleDevice(deviceId) {
     if (!AppState.isLoggedIn) return;
@@ -886,7 +915,7 @@ const VOICE_RESPONSES = {
 };
 
 // Initialize voice recognition
-function initVoiceRecognition() {
+function setupVoiceRecognition() {
     // Check browser support
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         console.log('Voice recognition not supported');
@@ -967,7 +996,7 @@ function updateVoiceLanguage() {
 
 function startVoiceRecognition() {
     if (!voiceState.recognition) {
-        const initialized = initVoiceRecognition();
+        const initialized = setupVoiceRecognition();
         if (!initialized) return;
     }
     
@@ -1276,6 +1305,7 @@ function showToast(message, type = 'info') {
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
+
 // ==================== EMERGENCY CONTACT ====================
 
 function makeEmergencyCall() {
@@ -1285,7 +1315,6 @@ function makeEmergencyCall() {
     // Show confirmation dialog
     const t = Translations[AppState.language];
     const confirmMessage = t.emergencyConfirm || 'Call emergency contact?';
-    const cancelMessage = t.cancel || 'Cancel';
     
     // Create custom confirmation (or use browser confirm)
     if (confirm(confirmMessage + ' ' + emergencyNumber)) {
@@ -1299,11 +1328,6 @@ function makeEmergencyCall() {
         showToast('Calling emergency contact...', 'warning');
     }
 }
-
-// Add to translations
-// Add to Translations object:
-Translations.en.emergencyConfirm = 'Call emergency contact?';
-Translations.am.emergencyConfirm = 'አደጋ ጊዜ ማነጋገሪያ መደወል?';
 
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -1398,8 +1422,8 @@ function setLanguage(lang) {
     updateLanguageButtons();
     updateUserProfile();
     
-    if (AppState.recognition) {
-        AppState.recognition.lang = lang === 'en' ? 'en-US' : 'am-ET';
+    if (voiceState.recognition) {
+        voiceState.recognition.lang = lang === 'en' ? 'en-US' : 'am-ET';
     }
     
     if (AppState.currentUser) {
@@ -1486,6 +1510,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setupVoiceRecognition();
     startAutoRefresh();
     applyTheme();
+    
+    // 👇👇👇 AUTO-START VOICE RECOGNITION 👇👇👇
+    setTimeout(() => {
+        startVoiceRecognition();
+    }, 1000);
     
     console.log('✅ Application Ready');
 });
