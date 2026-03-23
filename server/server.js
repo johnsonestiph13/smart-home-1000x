@@ -1,5 +1,5 @@
 /**
- * Estif Home 1000X - Complete Server with Gemini Voice AI
+ * Estif Home 1000X - Complete Server with Gemini AI
  * 
  * Features:
  * - Express server with WebSocket (Socket.IO)
