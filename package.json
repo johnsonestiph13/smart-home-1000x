@@ -1,42 +1,12 @@
 {
   "name": "estif-home-1000x",
   "version": "1.0.0",
-  "description": "Enterprise Smart Home Control System with Gemini AI, WebSocket, and Real‑time Control",
+  "description": "Smart Home Control System",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "dev": "nodemon server/server.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"**/*.{js,json,md}\"",
-    "backup": "node scripts/backup.js",
-    "restore": "node scripts/restore.js",
-    "monitor": "node scripts/monitor.js",
-    "seed": "node database/seeds/seed.js",
-    "migrate": "node database/migrate.js",
-    "pm2:start": "pm2 start server/server.js --name estif-home",
-    "pm2:stop": "pm2 stop estif-home",
-    "pm2:restart": "pm2 restart estif-home",
-    "pm2:logs": "pm2 logs estif-home"
+    "dev": "nodemon server/server.js"
   },
-  "keywords": [
-    "smart-home",
-    "iot",
-    "esp32",
-    "automation",
-    "ai",
-    "gemini",
-    "machine-learning",
-    "home-automation",
-    "real-time",
-    "websocket",
-    "nodejs"
-  ],
-  "author": "Estif Home Team",
-  "license": "MIT",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "compression": "^1.7.4",
@@ -46,26 +16,7 @@
     "helmet": "^7.1.0",
     "socket.io": "^4.5.4"
   },
-  "devDependencies": {
-    "eslint": "^8.55.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.29.0",
-    "jest": "^29.7.0",
-    "nodemon": "^3.0.2",
-    "pm2": "^5.3.0",
-    "prettier": "^3.1.0",
-    "supertest": "^6.3.3"
-  },
   "engines": {
-    "node": ">=16.0.0",
-    "npm": ">=8.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/johnsonestiph13/smart-home-1000x.git"
-  },
-  "bugs": {
-    "url": "https://github.com/johnsonestiph13/smart-home-1000x/issues"
-  },
-  "homepage": "https://github.com/johnsonestiph13/smart-home-1000x#readme"
+    "node": ">=20.0.0 <23.0.0"
+  }
 }
