@@ -1,20 +1,14 @@
 /**
- * Estif Home 1000X - ADVANCED MULTI-USER SMART HOME CONTROLLER
+ * Estif Home 1000X - Complete Smart Home Controller
  * Features:
  * - Secure User Registration & Login
- * - Password Hashing (simulated for demo)
- * - Session Management
- * - User Profiles
- * - Device Ownership per User
- * - Role-Based Access Control
- * - Cloud Sync Ready
- * - Enhanced Security
- * - Advanced Voice Recognition with Wake Words
+ * - Multi-user support with device ownership
+ * - Voice recognition with wake word "Hey Estiph"
+ * - Real-time WebSocket communication
+ * - Dark/Light theme & Bilingual support
  */
 
 // ==================== USER DATABASE ====================
-// In production, this would be a backend database
-// For demo, we use localStorage with encryption simulation
 
 class UserManager {
     constructor() {
@@ -24,7 +18,6 @@ class UserManager {
     }
     
     loadUsers() {
-        // Load from localStorage or initialize with demo users
         const saved = localStorage.getItem('estif_users');
         if (saved) {
             try {
@@ -48,7 +41,7 @@ class UserManager {
                 avatar: '👨',
                 createdAt: new Date().toISOString(),
                 lastLogin: null,
-                devices: [0, 1, 2, 3, 4, 5], // Device IDs this user owns
+                devices: [0, 1, 2, 3, 4, 5],
                 settings: {
                     language: 'en',
                     theme: 'light',
@@ -66,7 +59,7 @@ class UserManager {
                 avatar: '👩',
                 createdAt: new Date().toISOString(),
                 lastLogin: null,
-                devices: [0, 1, 2, 3], // Limited devices
+                devices: [0, 1, 2, 3],
                 settings: {
                     language: 'en',
                     theme: 'light',
@@ -78,7 +71,6 @@ class UserManager {
     }
     
     hashPassword(password) {
-        // Simple hash for demo (in production, use bcrypt on server)
         let hash = 0;
         for (let i = 0; i < password.length; i++) {
             hash = ((hash << 5) - hash) + password.charCodeAt(i);
@@ -96,12 +88,10 @@ class UserManager {
     }
     
     register(email, password, name) {
-        // Check if email exists
         if (this.users.find(u => u.email === email)) {
             return { success: false, error: 'email_exists' };
         }
         
-        // Create new user
         const newUser = {
             id: this.users.length + 1,
             email: email,
@@ -112,7 +102,7 @@ class UserManager {
             avatar: '👤',
             createdAt: new Date().toISOString(),
             lastLogin: null,
-            devices: [0, 1, 2], // Default devices for new users
+            devices: [0, 1, 2],
             settings: {
                 language: 'en',
                 theme: 'light',
@@ -123,39 +113,23 @@ class UserManager {
         
         this.users.push(newUser);
         this.saveUsers();
-        
         return { success: true, user: this.sanitizeUser(newUser) };
     }
     
     login(email, password) {
         const user = this.users.find(u => u.email === email);
-        
-        if (!user) {
-            return { success: false, error: 'user_not_found' };
-        }
-        
-        if (!this.verifyPassword(password, user.password)) {
-            return { success: false, error: 'invalid_password' };
-        }
-        
-        // Update last login
+        if (!user) return { success: false, error: 'user_not_found' };
+        if (!this.verifyPassword(password, user.password)) return { success: false, error: 'invalid_password' };
         user.lastLogin = new Date().toISOString();
         this.saveUsers();
-        
-        // Create session
-        const sessionToken = this.generateSessionToken();
+        const sessionToken = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 16);
         this.sessions.set(sessionToken, user.id);
-        
-        return { 
-            success: true, 
-            user: this.sanitizeUser(user),
-            token: sessionToken
-        };
+        return { success: true, user: this.sanitizeUser(user), token: sessionToken };
     }
     
     logout(token) {
         this.sessions.delete(token);
-        return { success: true };
+        return true;
     }
     
     validateSession(token) {
@@ -167,19 +141,9 @@ class UserManager {
         return user ? this.sanitizeUser(user) : null;
     }
     
-    getUserByToken(token) {
-        const userId = this.sessions.get(token);
-        if (!userId) return null;
-        return this.getUserById(userId);
-    }
-    
     sanitizeUser(user) {
         const { password, ...sanitized } = user;
         return sanitized;
-    }
-    
-    generateSessionToken() {
-        return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 16);
     }
     
     updateUserSettings(userId, settings) {
@@ -192,42 +156,11 @@ class UserManager {
         return { success: false };
     }
     
-    updateUserProfile(userId, updates) {
-        const user = this.users.find(u => u.id === userId);
-        if (user) {
-            Object.assign(user, updates);
-            this.saveUsers();
-            return { success: true, user: this.sanitizeUser(user) };
-        }
-        return { success: false };
-    }
-    
     changePassword(userId, oldPassword, newPassword) {
         const user = this.users.find(u => u.id === userId);
         if (!user) return { success: false, error: 'user_not_found' };
-        
-        if (!this.verifyPassword(oldPassword, user.password)) {
-            return { success: false, error: 'invalid_password' };
-        }
-        
+        if (!this.verifyPassword(oldPassword, user.password)) return { success: false, error: 'invalid_password' };
         user.password = this.hashPassword(newPassword);
-        this.saveUsers();
-        return { success: true };
-    }
-    
-    getAllUsers() {
-        return this.users.map(u => this.sanitizeUser(u));
-    }
-    
-    deleteUser(userId, requesterRole) {
-        if (requesterRole !== 'admin') {
-            return { success: false, error: 'unauthorized' };
-        }
-        
-        const index = this.users.findIndex(u => u.id === userId);
-        if (index === -1) return { success: false, error: 'user_not_found' };
-        
-        this.users.splice(index, 1);
         this.saveUsers();
         return { success: true };
     }
@@ -259,17 +192,8 @@ class DeviceManager {
     toggleDevice(deviceId, userId) {
         const device = this.allDevices.find(d => d.id === deviceId);
         if (!device) return { success: false, error: 'device_not_found' };
-        
-        // Check ownership
-        if (device.ownerId !== userId && userId !== 1) {
-            return { success: false, error: 'unauthorized' };
-        }
-        
-        // Check auto mode
-        if (device.autoMode) {
-            return { success: false, error: 'auto_mode_active', device };
-        }
-        
+        if (device.ownerId !== userId && userId !== 1) return { success: false, error: 'unauthorized' };
+        if (device.autoMode) return { success: false, error: 'auto_mode_active', device };
         device.state = !device.state;
         return { success: true, device };
     }
@@ -277,11 +201,7 @@ class DeviceManager {
     setAutoMode(deviceId, enabled, userId) {
         const device = this.allDevices.find(d => d.id === deviceId);
         if (!device) return { success: false, error: 'device_not_found' };
-        
-        if (device.ownerId !== userId && userId !== 1) {
-            return { success: false, error: 'unauthorized' };
-        }
-        
+        if (device.ownerId !== userId && userId !== 1) return { success: false, error: 'unauthorized' };
         device.autoMode = enabled;
         return { success: true, device };
     }
@@ -289,41 +209,13 @@ class DeviceManager {
     masterControl(state, userId) {
         const userDevices = this.getDevicesForUser(userId);
         const affected = [];
-        
         userDevices.forEach(device => {
             if (!device.autoMode) {
                 device.state = state;
                 affected.push(device);
             }
         });
-        
         return { success: true, affected };
-    }
-    
-    addDevice(deviceData, userId) {
-        const newId = this.allDevices.length;
-        const newDevice = {
-            id: newId,
-            ...deviceData,
-            state: false,
-            autoMode: false,
-            ownerId: userId
-        };
-        
-        this.allDevices.push(newDevice);
-        return { success: true, device: newDevice };
-    }
-    
-    removeDevice(deviceId, userId) {
-        const index = this.allDevices.findIndex(d => d.id === deviceId);
-        if (index === -1) return { success: false, error: 'device_not_found' };
-        
-        if (this.allDevices[index].ownerId !== userId && userId !== 1) {
-            return { success: false, error: 'unauthorized' };
-        }
-        
-        this.allDevices.splice(index, 1);
-        return { success: true };
     }
 }
 
@@ -333,15 +225,12 @@ const AppState = {
     currentUser: null,
     sessionToken: null,
     isLoggedIn: false,
-    
     language: localStorage.getItem('language') || 'en',
     theme: localStorage.getItem('theme') || 'light',
     currentPage: 'dashboard',
-    
     serverConnected: false,
     wsConnected: false,
     socket: null,
-    
     devices: [],
     systemStats: {
         temperature: 23,
@@ -349,16 +238,12 @@ const AppState = {
         energyUsage: 0,
         activeDevices: 0
     },
-    
     isListening: false,
     wakeWordDetected: false,
     recognition: null,
-    
     isLoading: false,
     autoRefresh: true
 };
-
-// ==================== INITIALIZE MANAGERS ====================
 
 const userManager = new UserManager();
 const deviceManager = new DeviceManager();
@@ -493,15 +378,12 @@ function handleRegister(event) {
         return;
     }
     
-    // Check if email already exists in Users array
     if (userManager.users.find(u => u.email === email)) {
         showToast(t.emailExists, 'error');
         return;
     }
     
-    // Create new user (store in localStorage)
     const result = userManager.register(email, password, name);
-    
     if (result.success) {
         showToast(t.registerSuccess, 'success');
         showLoginOnly();
@@ -519,13 +401,10 @@ function checkAuth() {
     
     if (savedToken && savedUser) {
         try {
-            const isValid = userManager.validateSession(savedToken);
-            if (isValid) {
+            if (userManager.validateSession(savedToken)) {
                 AppState.sessionToken = savedToken;
                 AppState.currentUser = JSON.parse(savedUser);
                 AppState.isLoggedIn = true;
-                
-                // Load user's devices
                 loadUserDevices();
                 showDashboardPage();
                 updateUserProfile();
@@ -535,7 +414,6 @@ function checkAuth() {
             console.log('Session invalid');
         }
     }
-    
     showLoginPage();
 }
 
@@ -563,7 +441,6 @@ function handleLogin(event) {
         localStorage.setItem('sessionToken', result.token);
         localStorage.setItem('currentUser', JSON.stringify(result.user));
         
-        // Load user's devices
         loadUserDevices();
         
         showToast(`${t.loginSuccess} ${result.user.name}!`, 'success');
@@ -643,7 +520,6 @@ function toggleDevice(deviceId) {
         return;
     }
     
-    // Update local state
     const deviceIndex = AppState.devices.findIndex(d => d.id === deviceId);
     if (deviceIndex !== -1) {
         AppState.devices[deviceIndex] = result.device;
@@ -671,7 +547,6 @@ function toggleAutoMode(deviceId) {
         return;
     }
     
-    // Update local state
     const deviceIndex = AppState.devices.findIndex(d => d.id === deviceId);
     if (deviceIndex !== -1) {
         AppState.devices[deviceIndex] = result.device;
@@ -690,7 +565,6 @@ function masterAllOn() {
     const result = deviceManager.masterControl(true, AppState.currentUser.id);
     const t = Translations[AppState.language];
     
-    // Update local state
     result.affected.forEach(updatedDevice => {
         const index = AppState.devices.findIndex(d => d.id === updatedDevice.id);
         if (index !== -1) {
@@ -715,7 +589,6 @@ function masterAllOff() {
     const result = deviceManager.masterControl(false, AppState.currentUser.id);
     const t = Translations[AppState.language];
     
-    // Update local state
     result.affected.forEach(updatedDevice => {
         const index = AppState.devices.findIndex(d => d.id === updatedDevice.id);
         if (index !== -1) {
@@ -770,28 +643,80 @@ function renderDeviceGrid() {
     updateDeviceCount();
 }
 
-// ==================== SETTINGS MANAGEMENT ====================
+// ==================== UI HELPERS ====================
 
-function updateUserSettings(settings) {
-    if (!AppState.currentUser) return;
+function updateStatistics() {
+    const activeCount = AppState.devices.filter(d => d.state).length;
+    const autoCount = AppState.devices.filter(d => d.autoMode).length;
+    const totalPower = AppState.devices.reduce((sum, d) => sum + (d.state ? d.power : 0), 0);
+    const maxPower = AppState.devices.reduce((sum, d) => sum + d.power, 0);
+    const savings = maxPower > 0 ? Math.round((1 - totalPower / maxPower) * 100) : 0;
     
-    const result = userManager.updateUserSettings(AppState.currentUser.id, settings);
-    if (result.success) {
-        AppState.currentUser.settings = result.settings;
-        localStorage.setItem('currentUser', JSON.stringify(AppState.currentUser));
-        showToast('Settings updated', 'success');
+    const statTotal = document.getElementById('statTotalDevices');
+    const statActive = document.getElementById('statActiveDevices');
+    const statAuto = document.getElementById('statAutoMode');
+    const statTemp = document.getElementById('statTemperature');
+    const statSaving = document.getElementById('statEnergySaving');
+    
+    if (statTotal) statTotal.textContent = AppState.devices.length;
+    if (statActive) statActive.textContent = activeCount;
+    if (statAuto) statAuto.textContent = autoCount;
+    if (statTemp) statTemp.textContent = `${AppState.systemStats.temperature}°C`;
+    if (statSaving) statSaving.textContent = `${savings}%`;
+    
+    AppState.systemStats.activeDevices = activeCount;
+    AppState.systemStats.energyUsage = totalPower;
+}
+
+function updateDeviceCount() {
+    const activeCount = AppState.devices.filter(d => d.state).length;
+    const badge = document.getElementById('deviceCount');
+    if (badge) badge.textContent = activeCount;
+}
+
+function addActivityLog(message, source = 'system') {
+    const logContainer = document.getElementById('activityLog');
+    if (!logContainer) return;
+    
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const logEntry = document.createElement('div');
+    logEntry.className = 'log-entry';
+    logEntry.innerHTML = `
+        <span class="log-time">${time}</span>
+        <span class="log-message">${escapeHtml(message)}</span>
+        <span class="log-source">${source}</span>
+    `;
+    
+    logContainer.insertBefore(logEntry, logContainer.firstChild);
+    
+    while (logContainer.children.length > 20) {
+        logContainer.removeChild(logContainer.lastChild);
     }
 }
 
-function changePassword(oldPassword, newPassword) {
-    if (!AppState.currentUser) return;
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
     
-    const result = userManager.changePassword(AppState.currentUser.id, oldPassword, newPassword);
-    if (result.success) {
-        showToast('Password changed successfully', 'success');
-    } else {
-        showToast('Current password is incorrect', 'error');
-    }
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+    
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || 'ℹ️'}</span>
+        <div class="toast-content">${escapeHtml(message)}</div>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // ==================== PAGE NAVIGATION ====================
@@ -856,8 +781,6 @@ function navigateTo(page) {
     }
 }
 
-// ==================== MOBILE MENU ====================
-
 function setupMobileMenu() {
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
@@ -878,9 +801,8 @@ function setupMobileMenu() {
     });
 }
 
-// ==================== VOICE RECOGNITION WITH WAKE WORDS ====================
+// ==================== WORKING VOICE RECOGNITION ====================
 
-// Voice state
 let voiceState = {
     isListening: false,
     wakeWordDetected: false,
@@ -889,84 +811,57 @@ let voiceState = {
     lastTranscript: ''
 };
 
-// Wake words (case‑insensitive)
 const WAKE_WORDS = {
     en: ['hey estiph', 'hey estif', 'estiph', 'ok estiph', 'hello estiph', 'wake up estiph'],
     am: ['ሰላም እስቲፍ', 'እስቲፍ', 'ሰላም', 'አልቃ', 'ሄይ እስቲፍ']
 };
 
-// Voice responses
 const VOICE_RESPONSES = {
     en: {
-        wake: ['Yes?', 'I\'m listening', 'How can I help?', 'Yes, sir?', 'Go ahead', 'At your service'],
+        wake: ['Yes?', 'I\'m listening', 'How can I help?', 'Yes, sir?', 'Go ahead'],
         confirm: ['Done!', 'Command executed', 'All set!', 'Okay!', 'Completed!'],
-        error: ['Sorry, I didn\'t understand', 'Could you repeat that?', 'Command not recognized'],
-        greeting: ['Hello! How can I help you?', 'Hi there! Ready to assist'],
-        help: ['You can say: Light on, Light off, Fan on, All on, All off, What\'s the temperature?']
+        error: ['Sorry, I didn\'t understand', 'Could you repeat that?', 'Command not recognized']
     },
     am: {
-        wake: ['አዎ?', 'እያዳመጥኩ ነው', 'ምን እረዳሃለሁ?', 'አዎ አለቃ?', 'ንገሩኝ', 'ትእዛዝዎን ይስጡ'],
+        wake: ['አዎ?', 'እያዳመጥኩ ነው', 'ምን እረዳሃለሁ?', 'አዎ አለቃ?', 'ንገሩኝ'],
         confirm: ['ተሰራ!', 'ትእዛዝ ተፈጸመ', 'ተዘጋጀ!', 'እሺ!', 'ተከናውኗል!'],
-        error: ['ይቅርታ አልገባኝም', 'እባክህ ድገምልኝ', 'ትእዛዙ አልታወቀም'],
-        greeting: ['ሰላም! እንዴት ልረዳህ?', 'ሰላም! ዝግጁ ነኝ'],
-        help: ['ማለት ትችላለህ: መብራት አብራ, መብራት አጥፋ, ማራገቢያ አብራ, ሁሉንም አብራ, ሙቀቱ ስንት ነው']
+        error: ['ይቅርታ አልገባኝም', 'እባክህ ድገምልኝ', 'ትእዛዙ አልታወቀም']
     }
 };
 
-// Initialize voice recognition
-function setupVoiceRecognition() {
-    // Check browser support
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        console.log('Voice recognition not supported');
-        showToast('Voice recognition not supported. Please use Chrome or Edge.', 'error');
+function initVoice() {
+    if (!('webkitSpeechRecognition' in window)) {
+        console.log('Voice not supported');
+        showToast('Voice not supported. Use Chrome.', 'error');
         return false;
     }
     
-    // Create recognition instance
-    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-    voiceState.recognition = new SpeechRecognition();
+    voiceState.recognition = new webkitSpeechRecognition();
     voiceState.recognition.continuous = true;
     voiceState.recognition.interimResults = true;
-    voiceState.recognition.maxAlternatives = 1;
+    voiceState.recognition.lang = AppState.language === 'en' ? 'en-US' : 'am-ET';
     
-    // Set language based on current app language
-    updateVoiceLanguage();
-    
-    // Set up event handlers
     voiceState.recognition.onstart = () => {
-        console.log('🎤 Voice recognition started - listening for wake word');
         voiceState.isListening = true;
         updateVoiceUI(true);
-        const t = Translations[AppState.language];
-        showToast(t.listening || 'Listening for wake word...', 'info');
+        showToast(Translations[AppState.language].listening || 'Listening for wake word...', 'info');
+        console.log('🎤 Voice started');
     };
     
     voiceState.recognition.onend = () => {
-        console.log('🎤 Voice recognition ended');
-        // Auto-restart if we should still be listening
         if (voiceState.isListening) {
-            try {
-                voiceState.recognition.start();
-            } catch (e) {
-                console.log('Could not restart recognition:', e);
-            }
+            voiceState.recognition.start();
         } else {
             updateVoiceUI(false);
         }
     };
     
     voiceState.recognition.onerror = (event) => {
-        console.error('Voice recognition error:', event.error);
-        
+        console.error('Voice error:', event.error);
         if (event.error === 'not-allowed') {
-            showToast('Microphone access denied. Please allow microphone access.', 'error');
-            stopVoiceRecognition();
+            showToast('Microphone access denied. Click lock icon → Allow', 'error');
         } else if (event.error === 'network') {
-            showToast('Network error. Check your internet connection.', 'error');
-        } else if (event.error === 'no-speech') {
-            // Silent error - just continue
-        } else {
-            showToast('Voice error: ' + event.error, 'error');
+            showToast('Network error. Check internet.', 'error');
         }
     };
     
@@ -978,137 +873,42 @@ function setupVoiceRecognition() {
         if (transcript && transcript !== voiceState.lastTranscript) {
             voiceState.lastTranscript = transcript;
             console.log('🎤 Heard:', transcript);
-            processVoiceInput(transcript);
+            processVoiceCommand(transcript);
         }
     };
     
     return true;
 }
 
-function updateVoiceLanguage() {
-    if (voiceState.recognition) {
-        voiceState.recognition.lang = AppState.language === 'en' ? 'en-US' : 'am-ET';
-        console.log('Voice language set to:', voiceState.recognition.lang);
-    }
-}
-
-function startVoiceRecognition() {
-    if (!voiceState.recognition) {
-        const initialized = setupVoiceRecognition();
-        if (!initialized) return;
-    }
-    
-    try {
-        updateVoiceLanguage();
-        voiceState.recognition.start();
-        voiceState.isListening = true;
-        updateVoiceUI(true);
-        console.log('🎤 Voice started - listening for wake word');
-        
-        // Show indicator in voice display
-        const voiceDisplay = document.getElementById('voiceCommandText');
-        if (voiceDisplay) {
-            const t = Translations[AppState.language];
-            voiceDisplay.textContent = t.listening || '🎤 Listening for "Hey Estiph" or "ሰላም እስቲፍ"...';
-        }
-    } catch (e) {
-        console.error('Failed to start voice:', e);
-        showToast('Could not start voice recognition', 'error');
-    }
-}
-
-function stopVoiceRecognition() {
-    if (voiceState.recognition) {
-        try {
-            voiceState.recognition.stop();
-        } catch (e) {
-            console.log('Error stopping:', e);
-        }
-    }
-    voiceState.isListening = false;
-    voiceState.wakeWordDetected = false;
-    if (voiceState.wakeWordTimer) {
-        clearTimeout(voiceState.wakeWordTimer);
-    }
-    updateVoiceUI(false);
-    console.log('🎤 Voice stopped');
-    
-    const voiceDisplay = document.getElementById('voiceCommandText');
-    if (voiceDisplay) {
-        const t = Translations[AppState.language];
-        voiceDisplay.textContent = t.wakeWord || 'Say "Hey Estiph" or "ሰላም እስቲፍ"';
-    }
-}
-
-function toggleVoiceRecognition() {
-    console.log('Toggle voice, current state:', voiceState.isListening);
-    
-    if (voiceState.isListening) {
-        stopVoiceRecognition();
-        showToast('Voice stopped', 'info');
-    } else {
-        startVoiceRecognition();
-    }
-}
-
-function updateVoiceUI(isListening) {
-    const voiceBtn = document.getElementById('voiceBtn');
-    
-    if (voiceBtn) {
-        if (isListening) {
-            voiceBtn.classList.add('listening');
-            voiceBtn.innerHTML = '<i class="fas fa-microphone-alt"></i><span class="pulse-ring"></span>';
-            voiceBtn.style.background = 'var(--danger)';
-            voiceBtn.style.color = 'white';
-            voiceBtn.title = 'Listening for wake word...';
-        } else {
-            voiceBtn.classList.remove('listening');
-            voiceBtn.innerHTML = '<i class="fas fa-microphone-alt"></i>';
-            voiceBtn.style.background = '';
-            voiceBtn.style.color = '';
-            voiceBtn.title = 'Start voice control';
-        }
-    }
-}
-
-function processVoiceInput(transcript) {
+function processVoiceCommand(transcript) {
     const currentLang = AppState.language;
     const wakeWordsList = WAKE_WORDS[currentLang];
     
-    // Check for wake word
+    // Wake word detection
     if (!voiceState.wakeWordDetected) {
         for (const wake of wakeWordsList) {
             if (transcript.includes(wake)) {
                 console.log('🎤 Wake word detected:', wake);
                 voiceState.wakeWordDetected = true;
                 
-                // Get random wake response
                 const responses = VOICE_RESPONSES[currentLang].wake;
                 const response = responses[Math.floor(Math.random() * responses.length)];
                 speakResponse(response);
                 
-                // Show visual feedback
                 const voiceDisplay = document.getElementById('voiceCommandText');
                 if (voiceDisplay) {
                     voiceDisplay.textContent = `🎤 ${response}`;
-                    voiceDisplay.style.background = 'rgba(0,0,0,0.4)';
                     setTimeout(() => {
                         if (voiceState.isListening) {
-                            voiceDisplay.textContent = '🎤 Listening for command...';
+                            voiceDisplay.textContent = Translations[AppState.language].listening || 'Listening for command...';
                         }
                     }, 2000);
                 }
                 
-                // Reset wake word after 8 seconds of inactivity
                 if (voiceState.wakeWordTimer) clearTimeout(voiceState.wakeWordTimer);
                 voiceState.wakeWordTimer = setTimeout(() => {
                     voiceState.wakeWordDetected = false;
-                    console.log('🎤 Wake word timeout - listening for wake word again');
-                    const voiceDisplay = document.getElementById('voiceCommandText');
-                    if (voiceDisplay && voiceState.isListening) {
-                        const t = Translations[AppState.language];
-                        voiceDisplay.textContent = t.listening || '🎤 Listening for "Hey Estiph" or "ሰላም እስቲፍ"...';
-                    }
+                    console.log('🎤 Wake word timeout');
                 }, 8000);
                 return;
             }
@@ -1116,7 +916,7 @@ function processVoiceInput(transcript) {
         return;
     }
     
-    // Process command after wake word detected
+    // Command processing
     const commands = {
         en: {
             'light on': () => toggleDevice(0),
@@ -1134,27 +934,16 @@ function processVoiceInput(transcript) {
             'all on': () => masterAllOn(),
             'all off': () => masterAllOff(),
             'temperature': () => speakResponse(`Temperature is ${AppState.systemStats.temperature} degrees Celsius`),
-            'help': () => speakResponse(VOICE_RESPONSES.en.help[0]),
-            'stop': () => stopVoiceRecognition()
+            'help': () => speakResponse('Say: Light on, Light off, Fan on, All on, All off')
         },
         am: {
             'መብራት አብራ': () => toggleDevice(0),
             'መብራት አጥፋ': () => toggleDevice(0),
             'ማራገቢያ አብራ': () => toggleDevice(1),
             'ማራገቢያ አጥፋ': () => toggleDevice(1),
-            'አየር ማቀዝቀዣ አብራ': () => toggleDevice(2),
-            'አየር ማቀዝቀዣ አጥፋ': () => toggleDevice(2),
-            'ቴሌቪዥን አብራ': () => toggleDevice(3),
-            'ቴሌቪዥን አጥፋ': () => toggleDevice(3),
-            'ማሞቂያ አብራ': () => toggleDevice(4),
-            'ማሞቂያ አጥፋ': () => toggleDevice(4),
-            'ፓምፕ አብራ': () => toggleDevice(5),
-            'ፓምፕ አጥፋ': () => toggleDevice(5),
             'ሁሉንም አብራ': () => masterAllOn(),
             'ሁሉንም አጥፋ': () => masterAllOff(),
-            'ሙቀቱ ስንት ነው': () => speakResponse(`ሙቀቱ ${AppState.systemStats.temperature} ዲግሪ ነው`),
-            'እርዳታ': () => speakResponse(VOICE_RESPONSES.am.help[0]),
-            'አቁም': () => stopVoiceRecognition()
+            'ሙቀቱ ስንት ነው': () => speakResponse(`ሙቀቱ ${AppState.systemStats.temperature} ዲግሪ ነው`)
         }
     };
     
@@ -1164,27 +953,16 @@ function processVoiceInput(transcript) {
             console.log('🎤 Command executed:', cmd);
             action();
             
-            // Get confirmation response
             const responses = VOICE_RESPONSES[currentLang].confirm;
             const response = responses[Math.floor(Math.random() * responses.length)];
             speakResponse(response);
             
-            // Reset wake word after command
             voiceState.wakeWordDetected = false;
             if (voiceState.wakeWordTimer) clearTimeout(voiceState.wakeWordTimer);
-            
-            // Update voice display
-            const voiceDisplay = document.getElementById('voiceCommandText');
-            if (voiceDisplay && voiceState.isListening) {
-                const t = Translations[AppState.language];
-                voiceDisplay.textContent = t.listening || '🎤 Listening for "Hey Estiph" or "ሰላም እስቲፍ"...';
-            }
             return;
         }
     }
     
-    // No command found
-    console.log('🎤 No command matched:', transcript);
     if (voiceState.wakeWordDetected) {
         const responses = VOICE_RESPONSES[currentLang].error;
         const response = responses[Math.floor(Math.random() * responses.length)];
@@ -1193,135 +971,73 @@ function processVoiceInput(transcript) {
 }
 
 function speakResponse(text) {
-    if (window.speechSynthesis) {
+    if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = AppState.language === 'en' ? 'en-US' : 'am-ET';
         utterance.rate = 0.9;
-        utterance.pitch = 1;
         window.speechSynthesis.speak(utterance);
         console.log('🎤 Speaking:', text);
     }
 }
 
-// ==================== UI HELPERS ====================
-
-function updateStatistics() {
-    const activeCount = AppState.devices.filter(d => d.state).length;
-    const autoCount = AppState.devices.filter(d => d.autoMode).length;
-    const totalPower = AppState.devices.reduce((sum, d) => sum + (d.state ? d.power : 0), 0);
-    const maxPower = AppState.devices.reduce((sum, d) => sum + d.power, 0);
-    const savings = maxPower > 0 ? Math.round((1 - totalPower / maxPower) * 100) : 0;
-    
-    const statTotal = document.getElementById('statTotalDevices');
-    const statActive = document.getElementById('statActiveDevices');
-    const statAuto = document.getElementById('statAutoMode');
-    const statTemp = document.getElementById('statTemperature');
-    const statSaving = document.getElementById('statEnergySaving');
-    
-    if (statTotal) statTotal.textContent = AppState.devices.length;
-    if (statActive) statActive.textContent = activeCount;
-    if (statAuto) statAuto.textContent = autoCount;
-    if (statTemp) statTemp.textContent = `${AppState.systemStats.temperature}°C`;
-    if (statSaving) statSaving.textContent = `${savings}%`;
-    
-    AppState.systemStats.activeDevices = activeCount;
-    AppState.systemStats.energyUsage = totalPower;
+function startVoice() {
+    if (!voiceState.recognition && !initVoice()) return;
+    try {
+        voiceState.recognition.start();
+        voiceState.isListening = true;
+        updateVoiceUI(true);
+        console.log('🎤 Voice started');
+    } catch (e) {
+        console.error('Failed to start voice:', e);
+    }
 }
 
-function updateDeviceCount() {
-    const activeCount = AppState.devices.filter(d => d.state).length;
-    const badge = document.getElementById('deviceCount');
-    if (badge) badge.textContent = activeCount;
+function stopVoice() {
+    if (voiceState.recognition) {
+        voiceState.recognition.stop();
+    }
+    voiceState.isListening = false;
+    voiceState.wakeWordDetected = false;
+    if (voiceState.wakeWordTimer) clearTimeout(voiceState.wakeWordTimer);
+    updateVoiceUI(false);
+    console.log('🎤 Voice stopped');
 }
 
-function updateConnectionStatus(connected) {
-    const statusDot = document.getElementById('statusDot');
-    const connectionText = document.getElementById('connectionText');
-    const t = Translations[AppState.language];
+function toggleVoice() {
+    if (voiceState.isListening) {
+        stopVoice();
+        showToast('Voice stopped', 'info');
+    } else {
+        startVoice();
+    }
+}
+
+function updateVoiceUI(isListening) {
+    const voiceBtn = document.getElementById('voiceBtn');
+    const voiceDisplay = document.getElementById('voiceCommandText');
     
-    if (statusDot) {
-        if (connected) {
-            statusDot.style.background = 'var(--success)';
-            statusDot.style.animation = 'pulse 2s infinite';
+    if (voiceBtn) {
+        if (isListening) {
+            voiceBtn.classList.add('listening');
+            voiceBtn.innerHTML = '<i class="fas fa-microphone-alt"></i>';
+            voiceBtn.style.background = 'var(--danger)';
+            voiceBtn.style.color = 'white';
         } else {
-            statusDot.style.background = 'var(--danger)';
-            statusDot.style.animation = 'none';
+            voiceBtn.classList.remove('listening');
+            voiceBtn.innerHTML = '<i class="fas fa-microphone-alt"></i>';
+            voiceBtn.style.background = '';
+            voiceBtn.style.color = '';
         }
     }
     
-    if (connectionText) {
-        connectionText.textContent = connected ? t.connected : t.disconnected;
+    if (voiceDisplay && !isListening) {
+        const t = Translations[AppState.language];
+        voiceDisplay.textContent = t.wakeWord || 'Say "Hey Estiph" or "ሰላም እስቲፍ"';
     }
 }
 
-function addActivityLog(message, source = 'system') {
-    const logContainer = document.getElementById('activityLog');
-    if (!logContainer) return;
-    
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const logEntry = document.createElement('div');
-    logEntry.className = 'log-entry';
-    logEntry.innerHTML = `
-        <span class="log-time">${time}</span>
-        <span class="log-message">${escapeHtml(message)}</span>
-        <span class="log-source">${source}</span>
-    `;
-    
-    logContainer.insertBefore(logEntry, logContainer.firstChild);
-    
-    while (logContainer.children.length > 20) {
-        logContainer.removeChild(logContainer.lastChild);
-    }
-}
-
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-    
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    
-    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
-    
-    toast.innerHTML = `
-        <span class="toast-icon">${icons[type] || 'ℹ️'}</span>
-        <div class="toast-content">${escapeHtml(message)}</div>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-    `;
-    
-    container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
-
-// ==================== EMERGENCY CONTACT ====================
-
-function makeEmergencyCall() {
-    // Emergency contact number - change this to your actual emergency number
-    const emergencyNumber = '+251987713787';
-    
-    // Show confirmation dialog
-    const t = Translations[AppState.language];
-    const confirmMessage = t.emergencyConfirm || 'Call emergency contact?';
-    
-    // Create custom confirmation (or use browser confirm)
-    if (confirm(confirmMessage + ' ' + emergencyNumber)) {
-        // For mobile devices - opens phone dialer
-        window.location.href = `tel:${emergencyNumber}`;
-        
-        // Log activity
-        addActivityLog('Emergency contact clicked - calling ' + emergencyNumber, 'emergency');
-        
-        // Show toast
-        showToast('Calling emergency contact...', 'warning');
-    }
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+// ==================== WEBSOCKET ====================
 
 function setupWebSocket() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -1374,6 +1090,26 @@ function sendAutoModeCommand(deviceId, enabled) {
     }
 }
 
+function updateConnectionStatus(connected) {
+    const statusDot = document.getElementById('statusDot');
+    const connectionText = document.getElementById('connectionText');
+    const t = Translations[AppState.language];
+    
+    if (statusDot) {
+        if (connected) {
+            statusDot.style.background = 'var(--success)';
+            statusDot.style.animation = 'pulse 2s infinite';
+        } else {
+            statusDot.style.background = 'var(--danger)';
+            statusDot.style.animation = 'none';
+        }
+    }
+    
+    if (connectionText) {
+        connectionText.textContent = connected ? t.connected : t.disconnected;
+    }
+}
+
 // ==================== THEME & LANGUAGE ====================
 
 function applyTheme() {
@@ -1395,7 +1131,7 @@ function toggleTheme() {
     applyTheme();
     
     if (AppState.currentUser) {
-        updateUserSettings({ theme: AppState.theme });
+        userManager.updateUserSettings(AppState.currentUser.id, { theme: AppState.theme });
     }
     
     showToast(`${AppState.theme === 'light' ? 'Light' : 'Dark'} mode enabled`, 'info');
@@ -1415,7 +1151,7 @@ function setLanguage(lang) {
     }
     
     if (AppState.currentUser) {
-        updateUserSettings({ language: lang });
+        userManager.updateUserSettings(AppState.currentUser.id, { language: lang });
     }
     
     showToast(`Language: ${lang === 'en' ? 'English' : 'Amharic'}`, 'success');
@@ -1466,10 +1202,6 @@ function startAutoRefresh() {
     }, 5000);
 }
 
-function setupEventListeners() {
-    // Event listeners handled in other functions
-}
-
 function showUserMenu() {
     const modal = document.getElementById('userModal');
     if (modal) modal.style.display = 'flex';
@@ -1485,24 +1217,28 @@ function editProfile() {
     closeModal();
 }
 
+function makeEmergencyCall() {
+    const emergencyNumber = '+251987713787';
+    const t = Translations[AppState.language];
+    if (confirm(t.emergencyConfirm + ' ' + emergencyNumber)) {
+        window.location.href = `tel:${emergencyNumber}`;
+        addActivityLog('Emergency contact clicked - calling ' + emergencyNumber, 'emergency');
+        showToast('Calling emergency contact...', 'warning');
+    }
+}
+
 // ==================== INITIALIZATION ====================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Estif Home 1000X Advanced Multi-User System Initializing...');
+    console.log('🚀 Estif Home 1000X Initializing...');
     
     loadSettings();
-    setupEventListeners();
     setupMobileMenu();
     checkAuth();
     setupWebSocket();
-    setupVoiceRecognition();
+    initVoice();  // Initialize voice (doesn't start automatically)
     startAutoRefresh();
     applyTheme();
-    
-    // 👇👇👇 AUTO-START VOICE RECOGNITION 👇👇👇
-    setTimeout(() => {
-        startVoiceRecognition();
-    }, 1000);
     
     console.log('✅ Application Ready');
 });
@@ -1516,7 +1252,7 @@ window.toggleDevice = toggleDevice;
 window.toggleAutoMode = toggleAutoMode;
 window.masterAllOn = masterAllOn;
 window.masterAllOff = masterAllOff;
-window.toggleVoiceRecognition = toggleVoiceRecognition;
+window.toggleVoice = toggleVoice;
 window.showUserMenu = showUserMenu;
 window.closeModal = closeModal;
 window.logout = logout;
@@ -1525,3 +1261,4 @@ window.handleLogin = handleLogin;
 window.handleRegister = handleRegister;
 window.showLoginOnly = showLoginOnly;
 window.showRegisterOnly = showRegisterOnly;
+window.makeEmergencyCall = makeEmergencyCall;
