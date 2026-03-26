@@ -11,10 +11,11 @@
     <link rel="stylesheet" href="css/style.css">
     
     <style>
-        /* Your existing CSS remains the same */
-        /* (Keep all your CSS styles as they are) */
-        
-        /* Add emergency card styles if not already in style.css */
+        /* ==================== YOUR EXISTING CSS ==================== */
+        /* All your previous styles should remain untouched. 
+           For brevity, we assume they are already in your css/style.css.
+           Add only the emergency card styles if not already present. */
+
         .emergency-card {
             background: linear-gradient(135deg, #ef476f, #d9042b);
             border-radius: var(--border-radius);
@@ -30,13 +31,11 @@
             overflow: hidden;
             animation: pulse-emergency 2s infinite;
         }
-        
         @keyframes pulse-emergency {
-            0% { box-shadow: 0 0 0 0 rgba(239, 71, 111, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 71, 111, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 71, 111, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(239,71,111,0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239,71,111,0); }
+            100% { box-shadow: 0 0 0 0 rgba(239,71,111,0); }
         }
-        
         .emergency-icon {
             width: 50px;
             height: 50px;
@@ -47,13 +46,11 @@
             justify-content: center;
             position: relative;
         }
-        
         .emergency-icon i:first-child {
             font-size: 1.8rem;
             position: absolute;
             animation: ring 1s infinite;
         }
-        
         .emergency-icon i:last-child {
             font-size: 1rem;
             position: absolute;
@@ -64,37 +61,16 @@
             border-radius: 50%;
             padding: 3px;
         }
-        
         @keyframes ring {
             0% { transform: rotate(0deg); }
             25% { transform: rotate(15deg); }
             75% { transform: rotate(-15deg); }
             100% { transform: rotate(0deg); }
         }
-        
-        .emergency-info {
-            flex: 1;
-        }
-        
-        .emergency-info h3 {
-            font-size: 1rem;
-            margin-bottom: 4px;
-            color: white;
-        }
-        
-        .emergency-info p {
-            font-size: 0.7rem;
-            opacity: 0.9;
-            margin-bottom: 5px;
-        }
-        
-        .emergency-number {
-            font-size: 1rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            font-family: monospace;
-        }
-        
+        .emergency-info { flex: 1; }
+        .emergency-info h3 { font-size: 1rem; margin-bottom: 4px; color: white; }
+        .emergency-info p { font-size: 0.7rem; opacity: 0.9; margin-bottom: 5px; }
+        .emergency-number { font-size: 1rem; font-weight: 700; letter-spacing: 1px; font-family: monospace; }
         .emergency-arrow {
             width: 35px;
             height: 35px;
@@ -105,11 +81,7 @@
             justify-content: center;
             transition: var(--transition);
         }
-        
-        .emergency-card:hover .emergency-arrow {
-            transform: translateX(5px);
-            background: rgba(255,255,255,0.3);
-        }
+        .emergency-card:hover .emergency-arrow { transform: translateX(5px); background: rgba(255,255,255,0.3); }
     </style>
 </head>
 <body>
@@ -123,7 +95,6 @@
                     <p>Smart Control</p>
                 </div>
             </div>
-            
             <div class="user-profile" onclick="showUserMenu()">
                 <div class="user-avatar" id="userAvatar">AD</div>
                 <div class="user-info">
@@ -131,7 +102,6 @@
                     <div class="role" id="userRole">System Administrator</div>
                 </div>
             </div>
-            
             <nav class="nav-menu">
                 <div class="nav-item active" onclick="navigateTo('dashboard')">
                     <i class="fas fa-home"></i>
@@ -155,7 +125,6 @@
                     <span data-i18n="settings">Settings</span>
                 </div>
             </nav>
-            
             <div class="sidebar-footer">
                 <button class="theme-toggle" onclick="toggleTheme()">
                     <i class="fas fa-moon" id="themeIcon"></i>
@@ -185,7 +154,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- LOGIN PAGE -->
             <div class="page-container" id="login-page">
                 <div class="login-container">
@@ -195,55 +164,45 @@
                             <h2>Estif Home</h2>
                             <p>Smart Home Control System</p>
                         </div>
-                        
                         <!-- Login Form -->
                         <form id="loginForm" onsubmit="handleLogin(event)" style="display: block;">
                             <div class="input-group">
                                 <i class="fas fa-envelope"></i>
                                 <input type="email" id="loginEmail" placeholder="Email" required>
                             </div>
-                            
                             <div class="input-group">
                                 <i class="fas fa-lock"></i>
                                 <input type="password" id="loginPassword" placeholder="Password" required>
                             </div>
-                            
                             <button type="submit" class="login-btn">
                                 <i class="fas fa-sign-in-alt"></i> <span data-i18n="login">Login</span>
                             </button>
                         </form>
-                        
                         <!-- Register Form -->
                         <form id="registerForm" onsubmit="handleRegister(event)" style="display: none;">
                             <div class="input-group">
                                 <i class="fas fa-user"></i>
                                 <input type="text" id="regName" placeholder="Full Name" required>
                             </div>
-                            
                             <div class="input-group">
                                 <i class="fas fa-envelope"></i>
                                 <input type="email" id="regEmail" placeholder="Email" required>
                             </div>
-                            
                             <div class="input-group">
                                 <i class="fas fa-lock"></i>
                                 <input type="password" id="regPassword" placeholder="Password" required>
                             </div>
-                            
                             <div class="input-group">
                                 <i class="fas fa-lock"></i>
                                 <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required>
                             </div>
-                            
                             <button type="submit" class="login-btn">
                                 <i class="fas fa-user-plus"></i> <span data-i18n="register">Register</span>
                             </button>
                         </form>
-                        
                         <div class="login-footer switch-form">
                             <p><span data-i18n="noAccount">Don't have an account?</span> <a href="#" onclick="showRegisterOnly()"><span data-i18n="register">Register</span></a></p>
                         </div>
-                        
                         <div class="login-demo">
                             <p>Owner: Estifanos Yohannis</p>
                             <p>📧 johnsonestiph01@gmail.com</p>
@@ -253,14 +212,13 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- DASHBOARD PAGE -->
             <div class="page-container" id="dashboard-page">
                 <div class="welcome-card">
                     <h2 id="welcomeMsg">Welcome back, Admin!</h2>
                     <p id="welcomeSub">Your smart home is running smoothly</p>
                 </div>
-                
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-microchip"></i></div>
@@ -291,17 +249,14 @@
                         </div>
                     </div>
                 </div>
-                
                 <div class="section-header">
                     <h3><i class="fas fa-microchip"></i> <span data-i18n="quickDevices">Quick Devices</span></h3>
                 </div>
                 <div class="device-grid" id="deviceGrid"></div>
-                
                 <div class="control-buttons">
                     <button class="control-btn btn-primary" onclick="masterAllOn()"><span data-i18n="allOn">ALL ON</span></button>
                     <button class="control-btn btn-danger" onclick="masterAllOff()"><span data-i18n="allOff">ALL OFF</span></button>
                 </div>
-                
                 <!-- Voice Card -->
                 <div class="voice-card">
                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -322,8 +277,7 @@
                         <i class="fas fa-microphone"></i> <span data-i18n="startListening">Start Listening</span>
                     </button>
                 </div>
-                
-                <!-- EMERGENCY CONTACT SECTION (MOVED INSIDE DASHBOARD) -->
+                <!-- Emergency Card -->
                 <div class="emergency-card" onclick="makeEmergencyCall()">
                     <div class="emergency-icon">
                         <i class="fas fa-phone-alt"></i>
@@ -338,7 +292,6 @@
                         <i class="fas fa-arrow-right"></i>
                     </div>
                 </div>
-                
                 <div class="section-header">
                     <h3><i class="fas fa-history"></i> <span data-i18n="recentActivity">Recent Activity</span></h3>
                 </div>
@@ -346,7 +299,7 @@
                     <div class="log-entry"><span class="log-time">--:--</span><span class="log-message">System ready</span><span class="log-source">system</span></div>
                 </div>
             </div>
-            
+
             <!-- ANALYTICS PAGE -->
             <div class="page-container" id="analytics-page">
                 <div class="analytics-grid">
@@ -366,7 +319,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- ALL DEVICES PAGE -->
             <div class="page-container" id="devices-page">
                 <div class="section-header">
@@ -374,7 +327,7 @@
                 </div>
                 <div class="all-devices-grid" id="allDevicesGrid"></div>
             </div>
-            
+
             <!-- AUTOMATION PAGE -->
             <div class="page-container" id="automation-page">
                 <div class="section-header">
@@ -423,7 +376,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- SETTINGS PAGE -->
             <div class="page-container" id="settings-page">
                 <div class="settings-list">
@@ -467,33 +420,40 @@
                             <option value="f">Fahrenheit (°F)</option>
                         </select>
                     </div>
+
+                    <!-- ESP32 Claim Section -->
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">My ESP32</div>
+                            <div class="setting-desc">Claim your ESP32 to associate it with your account</div>
+                        </div>
+                        <div id="espClaimSection">
+                            <select id="unclaimedEspList" style="margin-right: 8px; padding: 6px; border-radius: 8px;"></select>
+                            <button id="claimEspBtn" class="control-btn info" style="padding: 6px 12px;">Claim</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
-    
+
     <div class="toast-container" id="toastContainer"></div>
-    
-    <!-- Chart.js Library -->
+
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
-    <!-- Socket.IO for real-time (if needed) -->
+    <!-- Socket.IO -->
     <script src="/socket.io/socket.io.js"></script>
-    
-    <!-- Main App JS -->
+    <!-- Main app -->
     <script src="js/app.js"></script>
-    
+
     <script>
-        // Helper function for auto mode rules
+        // Helper functions (keep existing)
         function toggleAutoModeRule(deviceId, enabled) {
             if (typeof toggleAutoMode !== 'undefined') {
                 const device = window.AppState?.devices?.find(d => d.id === deviceId);
-                if (device && device.autoMode !== enabled) {
-                    toggleAutoMode(deviceId);
-                }
+                if (device && device.autoMode !== enabled) toggleAutoMode(deviceId);
             }
         }
-        
         function updateTempUnit(unit) {
             localStorage.setItem('tempUnit', unit);
             const tempElement = document.getElementById('statTemperature');
@@ -507,21 +467,14 @@
                 }
             }
         }
-        
-        // Load saved temp unit
         const savedUnit = localStorage.getItem('tempUnit');
         if (savedUnit && document.getElementById('tempUnit')) {
             document.getElementById('tempUnit').value = savedUnit;
             updateTempUnit(savedUnit);
         }
-        
-        // Initialize charts after app.js loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Wait for app.js to initialize
             setTimeout(() => {
-                if (typeof initCharts === 'function') {
-                    initCharts();
-                }
+                if (typeof initCharts === 'function') initCharts();
             }, 500);
         });
     </script>
