@@ -1242,7 +1242,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     console.log('✅ Application Ready');
 });
-
+// Alias for toggleVoiceRecognition to match HTML button
+function toggleVoiceRecognition() {
+    toggleVoice();
+}
 // ==================== EXPOSE GLOBALLY ====================
 
 window.navigateTo = navigateTo;
@@ -1253,6 +1256,7 @@ window.toggleAutoMode = toggleAutoMode;
 window.masterAllOn = masterAllOn;
 window.masterAllOff = masterAllOff;
 window.toggleVoice = toggleVoice;
+window.toggleVoiceRecognition = toggleVoiceRecognition; 
 window.showUserMenu = showUserMenu;
 window.closeModal = closeModal;
 window.logout = logout;
